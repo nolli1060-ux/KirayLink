@@ -1,0 +1,18 @@
+[
+  {
+    "id": "inq-1792937630006",
+    "propertyId": "7",
+    "propertyTitle": "3-Bedroom apartment in Summit",
+    "propertyLocation": "Summit",
+    "propertyPrice": 90000,
+    "tenantId": "usr-tenant-1792934706198",
+    "tenantName": "Matiyas Getachew",
+    "tenantEmail": "nolli1060@gmail.com",
+    "tenantPhone": "+251977222209",
+    "landlordId": "landlord-5",
+    "message": "Hello, I am interested in leasing 3-Bedroom apartment in Summit (Ref: 7). Please let me know when it is possible to arrange a private viewing.",
+    "moveInDate": "2026-11-26",
+    "status": "pending",
+    "createdAt": "2026-10-25T14:13:50.006Z"
+  }
+]
