@@ -15,7 +15,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import Badge from "@/components/ui/Badge";
+import Badge from "../components/ui/Badge";
 import PropertyGallery from "@/components/properties/PropertyGallery";
 import PropertyInquiryForm from "@/components/properties/PropertyInquiryForm";
 import SavePropertyButton from "@/components/properties/SavePropertyButton";
