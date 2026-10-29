@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import FeaturedProperties from "@/components/home/FeaturedProperties";
+import AvailableProperties from "@/components/home/AvailableProperties";
 import Hero from "@/components/home/Hero";
 
 export const metadata: Metadata = {
@@ -12,7 +13,15 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <FeaturedProperties />
+      <Suspense
+        fallback={
+          <div className="py-16 text-center text-sm text-[#5B677A]">
+            Loading available homes...
+          </div>
+        }
+      >
+        <AvailableProperties />
+      </Suspense>
     </>
   );
 }

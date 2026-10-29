@@ -91,7 +91,7 @@ export default function SignInForm() {
 
         <Button
           type="submit"
-          variant="primary"
+          variant="secondary"
           size="md"
           className="w-full mt-2"
           isLoading={isLoading}

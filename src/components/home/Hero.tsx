@@ -1,55 +1,61 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowDown, MapPin } from "lucide-react";
 import PropertySearch from "@/components/properties/PropertySearch";
+import { properties } from "@/data/properties";
 
 export default function Hero() {
+  const featuredProperty = properties.find((property) => property.featured);
+
   return (
-    <section className="relative isolate overflow-hidden bg-[#0F172A] text-white">
+    <section className="relative isolate mx-auto min-h-[620px] max-w-[1600px] overflow-hidden bg-[#17191F] text-white sm:min-h-[680px]">
+      {featuredProperty && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-cover bg-[center_55%]"
+          style={{ backgroundImage: `url("${featuredProperty.imageUrl}")` }}
+        />
+      )}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-cover bg-center opacity-35"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85')",
-        }}
+        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(13,15,19,0.2)_0%,rgba(13,15,19,0.42)_38%,rgba(13,15,19,0.88)_100%)]"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/90 to-[#0F172A]/35" />
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:px-8">
-        <div className="max-w-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#C5A880]/50 bg-black/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#E5D3B4]">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Addis Ababa&apos;s verified homes
-          </div>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            Find a home that{" "}
-            <span className="text-[#D7BD94]">suits you.</span>
-          </h1>
-          <p className="max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">
-            Browse apartments and homes with verified ownership and clear rental
-            terms.
-          </p>
-          <PropertySearch />
-          <p className="text-xs text-slate-300">
-            Homes in Bole, Kazanchis, Old Airport, and other neighborhoods.
-          </p>
+
+      <div className="mx-auto flex min-h-[620px] max-w-7xl flex-col items-center justify-center px-4 pb-20 pt-16 text-center sm:min-h-[680px] sm:px-6 sm:pt-20 lg:px-8">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/20 px-4 py-2 text-xs font-semibold tracking-wide text-white/90 backdrop-blur-sm">
+          <MapPin className="h-4 w-4 text-[#F3B41B]" aria-hidden="true" />
+          Find your next home in Addis Ababa
         </div>
 
-        <div className="hidden justify-end lg:flex">
-          <Link
-            href="/listings"
-            className="group flex items-center gap-4 rounded border border-white/20 bg-black/25 p-5 text-sm text-white backdrop-blur transition-colors hover:border-[#C5A880]"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded bg-[#C5A880] text-[#0F172A]">
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span>
-              <span className="block font-semibold">Browse properties</span>
-              <span className="mt-1 block text-xs text-slate-300">
-                Find your next home
-              </span>
-            </span>
-          </Link>
+        <h1 className="max-w-4xl text-4xl font-bold leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl">
+          Come home to
+          <br />
+          <span className="text-[#F3B41B]">something better.</span>
+        </h1>
+        <p className="mt-5 max-w-2xl text-sm leading-6 text-white/80 sm:text-base sm:leading-7">
+          Find a rental that fits your life, from the right neighborhood to the
+          right monthly price.
+        </p>
+
+        <div className="mt-8 w-full max-w-3xl rounded-2xl bg-[#FAF9F6] p-2 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] sm:mt-10 sm:flex sm:items-center sm:rounded-full sm:p-2">
+          <PropertySearch />
         </div>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-medium text-white/75 sm:text-sm">
+          <span>Explore available homes</span>
+          <span aria-hidden="true" className="hidden h-1 w-1 rounded-full bg-[#F3B41B] sm:block" />
+          <span>Compare rental options</span>
+          <span aria-hidden="true" className="hidden h-1 w-1 rounded-full bg-[#F3B41B] sm:block" />
+          <span>Connect with landlords</span>
+        </div>
+
+        <Link
+          href="/listings"
+          className="absolute bottom-6 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/75 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F3B41B]"
+        >
+          Scroll to explore
+          <ArrowDown className="h-4 w-4 text-[#F3B41B]" aria-hidden="true" />
+          <span className="sr-only">Browse all rental listings</span>
+        </Link>
       </div>
     </section>
   );

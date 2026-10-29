@@ -1,82 +1,30 @@
 "use server";
 
-import fs from "fs";
-import path from "path";
 import { revalidatePath } from "next/cache";
-import { getSession, requireAuth, getUsers } from "@/lib/auth";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { getSession, requireAuth, getUserRoles } from "@/lib/auth";
 import {
   getAllActiveProperties,
   getActivePropertyById,
-  getCustomProperties,
-  saveCustomProperties,
-  setPropertyStatusOverride,
-  markPropertyDeleted,
+  createPropertyRecord,
+  setPropertyStatus,
+  deletePropertyRecord,
 } from "@/lib/properties-store";
 import type { Property, PropertyStatus, PropertyType } from "@/types/property";
 import type { Inquiry, InquiryStatus } from "@/types/inquiry";
+import { getDatabase } from "@/lib/db";
+import {
+  inquiries as inquiryRows,
+  properties,
+  savedProperties as savedPropertyRows,
+} from "@/lib/schema";
 
-const savedPropertiesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "saved-properties.json"
-);
-
-const inquiriesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "inquiries.json"
-);
-
-interface SavedPropertyRecord {
-  tenantId: string;
-  propertyId: string;
-  savedAt: string;
-}
-
-// Helpers for reading/writing saved properties
-function getSavedRecords(): SavedPropertyRecord[] {
-  try {
-    if (fs.existsSync(savedPropertiesPath)) {
-      return JSON.parse(fs.readFileSync(savedPropertiesPath, "utf8"));
-    }
-  } catch (err) {
-    console.error("Failed to read saved properties:", err);
-  }
-  return [];
-}
-
-function saveSavedRecords(records: SavedPropertyRecord[]): void {
-  try {
-    fs.writeFileSync(
-      savedPropertiesPath,
-      JSON.stringify(records, null, 2),
-      "utf8"
-    );
-  } catch (err) {
-    console.error("Failed to save saved properties:", err);
-  }
-}
-
-// Helpers for reading/writing inquiries
 export async function getInquiries(): Promise<Inquiry[]> {
-  try {
-    if (fs.existsSync(inquiriesPath)) {
-      return JSON.parse(fs.readFileSync(inquiriesPath, "utf8"));
-    }
-  } catch (err) {
-    console.error("Failed to read inquiries:", err);
-  }
-  return [];
-}
-
-function saveInquiries(inquiries: Inquiry[]): void {
-  try {
-    fs.writeFileSync(inquiriesPath, JSON.stringify(inquiries, null, 2), "utf8");
-  } catch (err) {
-    console.error("Failed to save inquiries:", err);
-  }
+  const rows = await getDatabase()
+    .select({ data: inquiryRows.data })
+    .from(inquiryRows)
+    .orderBy(desc(inquiryRows.createdAt));
+  return rows.map((row) => row.data);
 }
 
 // ==========================================
@@ -85,14 +33,25 @@ function saveInquiries(inquiries: Inquiry[]): void {
 
 export async function getTenantDashboardData() {
   const session = await requireAuth("tenant", "/tenant/dashboard");
-  const records = getSavedRecords().filter((r) => r.tenantId === session.id);
-  const allProperties = getAllActiveProperties();
-
-  const savedProperties: Property[] = records
-    .map((r) => allProperties.find((p) => p.id === r.propertyId))
-    .filter((p): p is Property => p !== undefined);
-
-  const allInquiries = await getInquiries();
+  const database = getDatabase();
+  const [savedRows, allInquiries] = await Promise.all([
+    database
+      .select({ data: properties.data, status: properties.status })
+      .from(savedPropertyRows)
+      .innerJoin(properties, eq(savedPropertyRows.propertyId, properties.id))
+      .where(
+        and(
+          eq(savedPropertyRows.tenantId, session.id),
+          eq(properties.isDeleted, false)
+        )
+      )
+      .orderBy(desc(savedPropertyRows.savedAt)),
+    getInquiries(),
+  ]);
+  const savedProperties: Property[] = savedRows.map((row) => ({
+    ...row.data,
+    status: row.status,
+  }));
   const inquiries = allInquiries.filter((inq) => inq.tenantId === session.id);
 
   return {
@@ -108,10 +67,14 @@ export async function unsavePropertyAction(propertyId: string) {
     return { success: false, error: "Authentication required." };
   }
 
-  const records = getSavedRecords().filter(
-    (r) => !(r.tenantId === session.id && r.propertyId === propertyId)
-  );
-  saveSavedRecords(records);
+  await getDatabase()
+    .delete(savedPropertyRows)
+    .where(
+      and(
+        eq(savedPropertyRows.tenantId, session.id),
+        eq(savedPropertyRows.propertyId, propertyId)
+      )
+    );
   revalidatePath("/tenant/dashboard");
   return { success: true };
 }
@@ -125,27 +88,36 @@ export async function toggleSavePropertyAction(propertyId: string) {
     };
   }
 
-  const records = getSavedRecords();
-  const exists = records.some(
-    (r) => r.tenantId === session.id && r.propertyId === propertyId
-  );
-
-  let isSavedNow = false;
-  if (exists) {
-    saveSavedRecords(
-      records.filter(
-        (r) => !(r.tenantId === session.id && r.propertyId === propertyId)
+  const database = getDatabase();
+  const existing = await database
+    .select({ propertyId: savedPropertyRows.propertyId })
+    .from(savedPropertyRows)
+    .where(
+      and(
+        eq(savedPropertyRows.tenantId, session.id),
+        eq(savedPropertyRows.propertyId, propertyId)
       )
-    );
-    isSavedNow = false;
+    )
+    .limit(1);
+  const isSavedNow = existing.length === 0;
+  if (isSavedNow) {
+    await database
+      .insert(savedPropertyRows)
+      .values({
+        tenantId: session.id,
+        propertyId,
+        savedAt: new Date().toISOString(),
+      })
+      .onConflictDoNothing();
   } else {
-    records.push({
-      tenantId: session.id,
-      propertyId,
-      savedAt: new Date().toISOString(),
-    });
-    saveSavedRecords(records);
-    isSavedNow = true;
+    await database
+      .delete(savedPropertyRows)
+      .where(
+        and(
+          eq(savedPropertyRows.tenantId, session.id),
+          eq(savedPropertyRows.propertyId, propertyId)
+        )
+      );
   }
 
   revalidatePath("/tenant/dashboard");
@@ -159,7 +131,7 @@ export async function toggleSavePropertyAction(propertyId: string) {
 
 export async function getLandlordDashboardData() {
   const session = await requireAuth("landlord", "/landlord/dashboard");
-  const allProperties = getAllActiveProperties();
+  const allProperties = await getAllActiveProperties();
 
   // Server-side ownership check: only return properties owned by this landlord
   const myProperties = allProperties.filter(
@@ -289,9 +261,7 @@ export async function createPropertyAction(
     createdAt: new Date().toISOString(),
   };
 
-  const customList = getCustomProperties();
-  customList.unshift(newProperty);
-  saveCustomProperties(customList);
+  await createPropertyRecord(newProperty);
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/listings");
@@ -309,7 +279,7 @@ export async function updatePropertyStatusAction(
     return { success: false, error: "Authentication required." };
   }
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) {
     return { success: false, error: "Property not found." };
   }
@@ -327,7 +297,7 @@ export async function updatePropertyStatusAction(
     };
   }
 
-  setPropertyStatusOverride(propertyId, newStatus);
+  await setPropertyStatus(propertyId, newStatus);
   revalidatePath("/landlord/dashboard");
   revalidatePath("/admin/dashboard");
   revalidatePath("/listings");
@@ -342,7 +312,7 @@ export async function deletePropertyAction(propertyId: string) {
     return { success: false, error: "Authentication required." };
   }
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) {
     return { success: false, error: "Property not found." };
   }
@@ -360,15 +330,7 @@ export async function deletePropertyAction(propertyId: string) {
     };
   }
 
-  // If custom property, remove from custom list
-  const customList = getCustomProperties();
-  const filteredCustom = customList.filter((p) => p.id !== propertyId);
-  if (filteredCustom.length !== customList.length) {
-    saveCustomProperties(filteredCustom);
-  }
-
-  // Record deletion
-  markPropertyDeleted(propertyId);
+  await deletePropertyRecord(propertyId);
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/admin/dashboard");
@@ -387,22 +349,26 @@ export async function updateInquiryStatusAction(
   }
 
   const inquiries = await getInquiries();
-  const inqIndex = inquiries.findIndex((i) => i.id === inquiryId);
-  if (inqIndex === -1) {
+  const inquiry = inquiries.find((item) => item.id === inquiryId);
+  if (!inquiry) {
     return { success: false, error: "Inquiry not found." };
   }
 
-  const inq = inquiries[inqIndex];
   // Verify that current user is the landlord for this inquiry or an admin
-  if (inq.landlordId !== session.id && session.role !== "admin") {
+  if (inquiry.landlordId !== session.id && session.role !== "admin") {
     return {
       success: false,
       error: "Forbidden: You do not have access to manage this inquiry.",
     };
   }
 
-  inquiries[inqIndex].status = newStatus;
-  saveInquiries(inquiries);
+  await getDatabase()
+    .update(inquiryRows)
+    .set({
+      status: newStatus,
+      data: sql<Inquiry>`jsonb_set(${inquiryRows.data}, '{status}', to_jsonb(${newStatus}::text), true)`,
+    })
+    .where(eq(inquiryRows.id, inquiryId));
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/tenant/dashboard");
@@ -416,9 +382,9 @@ export async function updateInquiryStatusAction(
 
 export async function getAdminDashboardData() {
   const session = await requireAuth("admin", "/admin/dashboard");
-  const allProperties = getAllActiveProperties();
+  const allProperties = await getAllActiveProperties();
   const allInquiries = await getInquiries();
-  const allUsers = await getUsers();
+  const userRoles = await getUserRoles();
 
   const stats = {
     totalProperties: allProperties.length,
@@ -427,16 +393,15 @@ export async function getAdminDashboardData() {
     rentedProperties: allProperties.filter((p) => p.status === "rented").length,
     totalInquiries: allInquiries.length,
     pendingInquiries: allInquiries.filter((i) => i.status === "pending").length,
-    totalUsers: allUsers.length,
-    tenantCount: allUsers.filter((u) => u.role === "tenant").length,
-    landlordCount: allUsers.filter((u) => u.role === "landlord").length,
+    totalUsers: userRoles.length,
+    tenantCount: userRoles.filter((role) => role === "tenant").length,
+    landlordCount: userRoles.filter((role) => role === "landlord").length,
   };
 
   return {
     user: session,
     allProperties,
     allInquiries,
-    allUsers,
     stats,
   };
 }
@@ -450,7 +415,7 @@ export async function adminUpdatePropertyStatusAction(
     return { success: false, error: "Administrator authorization required." };
   }
 
-  setPropertyStatusOverride(propertyId, newStatus);
+  await setPropertyStatus(propertyId, newStatus);
   revalidatePath("/admin/dashboard");
   revalidatePath("/listings");
   return { success: true };
@@ -462,7 +427,7 @@ export async function adminDeletePropertyAction(propertyId: string) {
     return { success: false, error: "Administrator authorization required." };
   }
 
-  markPropertyDeleted(propertyId);
+  await deletePropertyRecord(propertyId);
   revalidatePath("/admin/dashboard");
   revalidatePath("/listings");
   return { success: true };
@@ -488,7 +453,7 @@ export async function submitInquiryAction(formData: FormData) {
   if (!phone) return { success: false, error: "Phone number is required." };
   if (!message) return { success: false, error: "Message is required." };
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) return { success: false, error: "Property not found." };
 
   const session = await getSession();
@@ -510,9 +475,15 @@ export async function submitInquiryAction(formData: FormData) {
     createdAt: new Date().toISOString(),
   };
 
-  const inquiries = await getInquiries();
-  inquiries.unshift(newInquiry);
-  saveInquiries(inquiries);
+  await getDatabase().insert(inquiryRows).values({
+      id: newInquiry.id,
+      propertyId: newInquiry.propertyId,
+      tenantId: newInquiry.tenantId,
+      landlordId: newInquiry.landlordId,
+      status: newInquiry.status,
+      data: newInquiry,
+      createdAt: newInquiry.createdAt,
+    });
 
   revalidatePath("/tenant/dashboard");
   revalidatePath("/landlord/dashboard");

@@ -9,9 +9,12 @@ export const metadata: Metadata = {
     "Browse verified homes, apartments, villas, and townhouses for rent in Addis Ababa.",
 };
 
-export default function ListingsPage() {
-  const properties = getAllActiveProperties();
+async function ListingsContent() {
+  const properties = await getAllActiveProperties();
+  return <ListingsClient initialProperties={properties} />;
+}
 
+export default function ListingsPage() {
   return (
     <Suspense
       fallback={
@@ -20,7 +23,7 @@ export default function ListingsPage() {
         </div>
       }
     >
-      <ListingsClient initialProperties={properties} />
+      <ListingsContent />
     </Suspense>
   );
 }

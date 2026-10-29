@@ -23,7 +23,7 @@ In modern web development, relying on client-side security is an anti-pattern. K
 - **Algorithm**: Blowfish-based adaptive hashing with configurable work factor.
 - **Salt Rounds**: 10 rounds. Each password generation includes a unique, cryptographically random salt.
 - **Timing Attack Resistance**: `bcrypt.compareSync()` performs comparisons in consistent time to prevent timing attacks.
-- **Storage**: Plain-text passwords are never stored in memory or on disk. Only the resulting 60-character bcrypt hash is written to `users.json`.
+- **Storage**: Plain-text passwords are never stored. Only the resulting bcrypt hash is stored in the `password_hash` column of `kiraylink_users`.
 
 ```typescript
 // Registration hashing:
@@ -151,11 +151,12 @@ if (!destination) {
 
 ## 7. Environment Variables & Secrets Management
 
-The application requires an `AUTH_SECRET` environment variable for cryptographic token operations.
+The application requires `AUTH_SECRET` for cryptographic token operations and `DATABASE_URL` for PostgreSQL access.
 
 ### Local Development (`.env.local`):
 ```env
 AUTH_SECRET="kiraylink-luxury-rentals-dev-secret-key-2026-secure-32ch"
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 

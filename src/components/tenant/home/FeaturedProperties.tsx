@@ -4,8 +4,8 @@ import { getAllActiveProperties } from "@/lib/properties-store";
 import PropertyCard from "@/components/properties/PropertyCard";
 import Badge from "@/components/ui/Badge";
 
-export default function FeaturedProperties() {
-  const properties = getAllActiveProperties();
+export default async function FeaturedProperties() {
+  const properties = await getAllActiveProperties();
   const featuredProperties = properties
     .filter((property) => property.featured && property.status === "available")
     .slice(0, 3);

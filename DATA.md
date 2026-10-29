@@ -4,15 +4,21 @@ This document describes the data architecture, entity models, schema definitions
 
 ---
 
-## 1. Architectural Strategy: Structured File-Based Persistence
+## 1. PostgreSQL Persistence
 
-For a student capstone project evaluated in diverse testing and oral walkthrough environments, requiring a live PostgreSQL instance, Docker daemon, or paid cloud database introduces evaluation friction and network dependencies.
+KirayLink uses Neon PostgreSQL for runtime account, property, saved-property, and inquiry data. The Neon HTTP driver is initialized in `src/lib/db.ts`; server-side data access is implemented in `src/lib/auth.ts`, `src/lib/properties-store.ts`, and `src/lib/dashboard-actions.ts`.
 
-KirayLink implements a **Structured File-Based Repository Pattern**:
-- **Zero External Dependencies**: Evaluators can clone the repo and run it instantly on any operating system without provisioning database instances.
-- **Inspectability**: Evaluators can directly inspect `src/data/*.json` to observe state changes, password hashing, and record updates in real time.
-- **Atomic File Operations**: Updates use synchronous, blocking file system writes (`fs.writeFileSync`) to prevent race conditions during capstone walkthroughs.
-- **Modular Abstraction**: All database calls are contained inside `src/lib/dashboard-actions.ts`, `src/lib/properties-store.ts`, and `src/lib/auth.ts`, allowing an effortless transition to Prisma/PostgreSQL in future production phases.
+The relational schema is defined in `src/lib/schema.ts`, with versioned SQL migrations in `drizzle/`. Property attributes remain in a typed JSONB document so the current `Property` interface and listing UI stay aligned, while owner, status, and deletion state are stored in indexed columns. Accounts, bookmarks, and inquiries use dedicated tables.
+
+The JSON files in `src/data/` are retained as seed/import sources, not as the live runtime store. `npm run db:setup` applies pending migrations and imports the current bundled properties and JSON records. Inserts are idempotent and do not overwrite records already present in PostgreSQL.
+
+### Local setup
+
+1. Put a rotated Neon pooled connection string in the root `.env.local` as `DATABASE_URL=...`. Keep it server-only; do not use a `NEXT_PUBLIC_` prefix.
+2. Run `npm run db:setup` to apply migrations and import the initial data.
+3. Run `npm run dev` as usual.
+
+Use the pooled URL for application requests and the direct/unpooled URL for migrations. To change the schema, edit `src/lib/schema.ts`, run `npm run db:generate`, review and commit the generated migration, then use `npm run db:migrate` to apply it.
 
 ---
 
@@ -164,41 +170,14 @@ interface OverridesData {
 
 ---
 
-## 4. The Unified Property Resolver
+## 4. Property Import and Lifecycle
 
-A key architectural design in KirayLink is the **Unified Property Store** (`src/lib/properties-store.ts`).
+`scripts/setup-database.ts` imports the sample properties in `src/data/properties.ts`, landlord-created records in `src/data/custom-properties.json`, and applies legacy values from `src/data/property-overrides.json`. It also imports account, saved-property, and inquiry JSON data. Existing database records are left unchanged on re-run.
 
-When querying properties:
-1. It loads the 8 sample properties from `src/data/properties.ts`.
-2. It loads all landlord-created properties from `src/data/custom-properties.json`.
-3. It filters out any IDs listed in `overrides.deletedIds`.
-4. It applies any status changes from `overrides.statusOverrides` (e.g. changing an `available` property to `rented`).
-5. It returns the merged, deduplicated, authoritative list.
-
-This allows demo listings to remain robust while supporting full dynamic CRUD operations (Create, Read, Update Status, Delete) without mutating static source code.
+At runtime, `src/lib/properties-store.ts` reads listings from `kiraylink_properties`. Status changes update both the indexed status column and the JSONB object's `status`; deletes are soft deletes so saved-property references remain valid. New landlord listings are inserted directly into PostgreSQL.
 
 ---
 
-## 5. Sample Listings (Addis Ababa)
+## 5. Seed Data
 
-The platform includes 8 sample properties in different Addis Ababa neighborhoods:
-
-1. **The Grand Villa** (Old Airport, Addis Ababa)
-   - Rent: 450,000 ETB / month | 5 Beds | 6 Baths | 6,500 sq ft | Villa
-   - Landlord: Dawit Bekele (`landlord@kiraylink.com`)
-2. **Atlas Skyview Penthouse** (Bole Atlas, Addis Ababa)
-   - Rent: 280,000 ETB / month | 4 Beds | 4 Baths | 3,800 sq ft | Penthouse
-3. **Kazanchis Suite** (Kazanchis, Addis Ababa)
-   - Rent: 140,000 ETB / month | 2 Beds | 2 Baths | 1,650 sq ft | Apartment
-4. **Sarbet Heritage Residence** (Sarbet, Addis Ababa)
-   - Rent: 320,000 ETB / month | 4 Beds | 4 Baths | 4,200 sq ft | Townhouse
-   - Landlord: Dawit Bekele (`landlord@kiraylink.com`)
-5. **Bole Rwanda Contemporary Villa** (Bole Rwanda, Addis Ababa)
-   - Rent: 380,000 ETB / month | 4 Beds | 5 Baths | 5,100 sq ft | Villa
-6. **Bole Medhanialem Apartment** (Bole, Addis Ababa)
-   - Rent: 115,000 ETB / month | 2 Beds | 2 Baths | 1,450 sq ft | Apartment
-7. **CMC Townhouse** (CMC, Addis Ababa)
-   - Rent: 210,000 ETB / month | 3 Beds | 3 Baths | 2,900 sq ft | Townhouse
-   - Landlord: Dawit Bekele (`landlord@kiraylink.com`)
-8. **Summit Villa** (Summit, Addis Ababa)
-   - Rent: 290,000 ETB / month | 4 Beds | 4 Baths | 4,000 sq ft | Villa
+The current sample listing catalog is defined in `src/data/properties.ts`. To change which sample listings are initially imported, update that source file before running the setup command. Do not edit `.env.local` into source control or expose the connection string in browser code.

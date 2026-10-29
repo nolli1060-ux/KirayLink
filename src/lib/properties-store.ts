@@ -1,115 +1,66 @@
-import fs from "fs";
-import path from "path";
 import type { Property, PropertyStatus } from "@/types/property";
-import { properties as baseProperties } from "@/data/properties";
+import { getDatabase } from "@/lib/db";
+import { properties } from "@/lib/schema";
+import { and, desc, eq, sql } from "drizzle-orm";
 
-const customPropertiesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "custom-properties.json"
-);
-
-const overridesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "property-overrides.json"
-);
-
-interface OverridesData {
-  statusOverrides: Record<string, PropertyStatus>;
-  deletedIds: string[];
+export async function getAllActiveProperties(): Promise<Property[]> {
+  const rows = await getDatabase()
+    .select({ data: properties.data, status: properties.status })
+    .from(properties)
+    .where(eq(properties.isDeleted, false))
+    .orderBy(desc(properties.createdAt));
+  return rows.map((row) => ({
+    ...row.data,
+    status: row.status,
+  }));
 }
 
-function getOverrides(): OverridesData {
-  try {
-    if (fs.existsSync(overridesPath)) {
-      const data = fs.readFileSync(overridesPath, "utf8");
-      const parsed = JSON.parse(data) as Partial<OverridesData>;
-      return {
-        statusOverrides: parsed.statusOverrides ?? {},
-        deletedIds: parsed.deletedIds ?? [],
-      };
-    }
-  } catch (err) {
-    console.error("Failed to read property overrides:", err);
-  }
-  return { statusOverrides: {}, deletedIds: [] };
+export async function getActivePropertyById(
+  id: string
+): Promise<Property | undefined> {
+  const rows = await getDatabase()
+    .select({ data: properties.data, status: properties.status })
+    .from(properties)
+    .where(and(eq(properties.id, id), eq(properties.isDeleted, false)))
+    .limit(1);
+  if (!rows[0]) return undefined;
+  return {
+    ...rows[0].data,
+    status: rows[0].status,
+  };
 }
 
-function saveOverrides(overrides: OverridesData): void {
-  try {
-    fs.writeFileSync(overridesPath, JSON.stringify(overrides, null, 2), "utf8");
-  } catch (err) {
-    console.error("Failed to save property overrides:", err);
-  }
-}
-
-export function getCustomProperties(): Property[] {
-  try {
-    if (fs.existsSync(customPropertiesPath)) {
-      const data = fs.readFileSync(customPropertiesPath, "utf8");
-      return JSON.parse(data) as Property[];
-    }
-  } catch (err) {
-    console.error("Failed to read custom properties:", err);
-  }
-  return [];
-}
-
-export function saveCustomProperties(props: Property[]): void {
-  try {
-    fs.writeFileSync(
-      customPropertiesPath,
-      JSON.stringify(props, null, 2),
-      "utf8"
-    );
-  } catch (err) {
-    console.error("Failed to save custom properties:", err);
-  }
-}
-
-// Returns all active properties (base + custom, applying overrides and excluding deleted)
-export function getAllActiveProperties(): Property[] {
-  const custom = getCustomProperties();
-  const overrides = getOverrides();
-
-  const combined = [...baseProperties, ...custom];
-
-  return combined
-    .filter((prop) => !overrides.deletedIds.includes(prop.id))
-    .map((prop) => {
-      if (overrides.statusOverrides[prop.id]) {
-        return {
-          ...prop,
-          status: overrides.statusOverrides[prop.id],
-        };
-      }
-      return prop;
+export async function createPropertyRecord(property: Property): Promise<void> {
+  await getDatabase().insert(properties).values({
+      id: property.id,
+      landlordId: property.landlord.id,
+      landlordEmail: property.landlord.email.toLowerCase(),
+      status: property.status,
+      data: property,
+      createdAt: property.createdAt,
     });
 }
 
-// Find property by ID from the active collection
-export function getActivePropertyById(id: string): Property | undefined {
-  return getAllActiveProperties().find((p) => p.id === id);
-}
-
-// Record a status change for a property
-export function setPropertyStatusOverride(
+export async function setPropertyStatus(
   id: string,
   status: PropertyStatus
-): void {
-  const overrides = getOverrides();
-  overrides.statusOverrides[id] = status;
-  saveOverrides(overrides);
+): Promise<boolean> {
+  const rows = await getDatabase()
+    .update(properties)
+    .set({
+      status,
+      data: sql<Property>`jsonb_set(${properties.data}, '{status}', to_jsonb(${status}::text), true)`,
+    })
+    .where(and(eq(properties.id, id), eq(properties.isDeleted, false)))
+    .returning({ id: properties.id });
+  return rows.length > 0;
 }
 
-// Record a deletion for a property
-export function markPropertyDeleted(id: string): void {
-  const overrides = getOverrides();
-  if (!overrides.deletedIds.includes(id)) {
-    overrides.deletedIds.push(id);
-    saveOverrides(overrides);
-  }
+export async function deletePropertyRecord(id: string): Promise<boolean> {
+  const rows = await getDatabase()
+    .update(properties)
+    .set({ isDeleted: true })
+    .where(and(eq(properties.id, id), eq(properties.isDeleted, false)))
+    .returning({ id: properties.id });
+  return rows.length > 0;
 }

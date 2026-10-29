@@ -22,6 +22,7 @@ import SavePropertyButton from "@/components/properties/SavePropertyButton";
 import { getActivePropertyById } from "@/lib/properties-store";
 import { properties } from "@/data/properties";
 import { formatPrice, formatCare } from "@/lib/utils";
+import { connection } from "next/server";
 
 interface PropertyPageProps {
   params: Promise<{ id: string }>;
@@ -36,8 +37,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PropertyPageProps): Promise<Metadata> {
+  await connection();
   const { id } = await params;
-  const property = getActivePropertyById(id);
+  const property = await getActivePropertyById(id);
   if (!property) {
     return {
       title: "Residence Not Found | KirayLink",
@@ -56,7 +58,7 @@ async function PropertyDetailContent({
   paramsPromise: Promise<{ id: string }>;
 }) {
   const { id } = await paramsPromise;
-  const property = getActivePropertyById(id);
+  const property = await getActivePropertyById(id);
 
   if (!property) {
     notFound();

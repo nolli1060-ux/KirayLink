@@ -1,29 +1,3 @@
 [
-  {
-    "id": "usr-tenant-1792934706198",
-    "name": "Matiyas GEtachew",
-    "email": "nolli1060@gmail.com",
-    "passwordHash": "$2b$10$tDfU1TUSyskXFskaHaY7R.LAqfnUS/.0OmafgcIlgCcFwjvfJVMAW",
-    "role": "tenant",
-    "phone": "+251977222209",
-    "createdAt": "2026-10-25T13:25:06.198Z"
-  },
-  {
-    "id": "usr-tenant-1792939680131",
-    "name": "mat",
-    "email": "0@gmail.com",
-    "passwordHash": "$2b$10$ahqxSPpoe5a/1.MvKDRZpu0WTLKyIkzhXYnqcDqxyz8fjlNSiV5A6",
-    "role": "tenant",
-    "phone": "+251977222209",
-    "createdAt": "2026-10-25T14:48:00.131Z"
-  },
-  {
-    "id": "usr-tenant-1792995283942",
-    "name": "yeabsira",
-    "email": "yeab@gmail.com",
-    "passwordHash": "$2b$10$ep0sJeeBb1QaLyJdmIfiNuMp7GB.aW0k2pkyOnj8yG75/fU/UCccC",
-    "role": "tenant",
-    "phone": "+251977555548",
-    "createdAt": "2026-10-26T06:14:43.942Z"
-  }
+  
 ]
