@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Building, Phone, ShieldAlert, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Phone, ShieldAlert, ArrowRight } from "lucide-react";
 import { signUpAction } from "@/lib/auth";
 import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
@@ -16,7 +16,6 @@ export default function SignUpForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [company, setCompany] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -53,7 +52,6 @@ export default function SignUpForm() {
       formData.set("password", password);
       formData.set("role", role);
       if (phone.trim()) formData.set("phone", phone.trim());
-      if (company.trim()) formData.set("company", company.trim());
 
       const result = await signUpAction(null, formData);
 
@@ -150,29 +148,15 @@ export default function SignUpForm() {
           disabled={isLoading}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            label="Phone Number"
-            type="tel"
-            placeholder="+251 91 123 4567"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            icon={<Phone className="w-4 h-4" aria-hidden="true" />}
-            disabled={isLoading}
-          />
-
-          {role === "landlord" && (
-            <Input
-              label="Real Estate / Company"
-              type="text"
-              placeholder="e.g. Addis Property Group"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              icon={<Building className="w-4 h-4" aria-hidden="true" />}
-              disabled={isLoading}
-            />
-          )}
-        </div>
+        <Input
+          label="Phone Number"
+          type="tel"
+          placeholder="+251 91 123 4567"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          icon={<Phone className="w-4 h-4" aria-hidden="true" />}
+          disabled={isLoading}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input
