@@ -104,7 +104,7 @@ export default function SignInForm() {
           type="password"
           name="password"
           autoComplete="current-password"
-          placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon={<Lock className="w-4 h-4" aria-hidden="true" />}

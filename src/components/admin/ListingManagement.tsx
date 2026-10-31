@@ -154,7 +154,7 @@ export default function ListingManagement({
             {properties.length}
           </div>
           <p className="text-[11px] text-muted mt-1">
-            {properties.filter((p) => p.status === "available").length} active Ãƒâ€šÃ‚Â·{" "}
+            {properties.filter((p) => p.status === "available").length} active ·{" "}
             {properties.filter((p) => p.status === "rented").length} leased
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function ListingManagement({
             {stats.totalUsers}
           </div>
           <p className="text-[11px] text-muted mt-1">
-            {stats.tenantCount} tenants Ãƒâ€šÃ‚Â· {stats.landlordCount} landlords
+            {stats.tenantCount} tenants · {stats.landlordCount} landlords
           </p>
         </div>
       </div>
@@ -351,7 +351,7 @@ export default function ListingManagement({
                               />
                             </Link>
                             <p className="text-[11px] text-muted mt-0.5 truncate">
-                              {prop.propertyType} Ãƒâ€šÃ‚Â· {prop.neighborhood}, {prop.city}
+                              {prop.propertyType} · {prop.neighborhood}, {prop.city}
                             </p>
                           </div>
                         </div>

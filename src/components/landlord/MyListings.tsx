@@ -147,12 +147,12 @@ export default function MyListings({
                   <span className="font-bold text-main">
                     {formatPrice(property.price)}
                   </span>
-                  <span>Ã¢â‚¬Â¢</span>
+                  <span>•</span>
                   <span>{property.bedrooms} Beds</span>
-                  <span>Ã¢â‚¬Â¢</span>
+                  <span>•</span>
                   <span>{property.bathrooms} Baths</span>
-                  <span>Ã¢â‚¬Â¢</span>
-                  <span>{formatCare(property.care)} mÃ‚Â²</span>
+                  <span>•</span>
+                  <span>{formatCare(property.care)} m²</span>
                 </div>
               </div>
             </div>

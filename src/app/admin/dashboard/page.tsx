@@ -19,14 +19,14 @@ async function AdminDashboardContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <Badge variant="navy">Admin Console â€” High Privilege</Badge>
+            <Badge variant="navy">Admin Console — High Privilege</Badge>
             <span className="text-xs text-muted">Platform Governance</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-main mt-2">
             Platform Administration
           </h1>
           <p className="text-xs text-muted mt-1">
-            Logged in as {data.user.name} ({data.user.email}) Â· Strict server-enforced role: {data.user.role}
+            Logged in as {data.user.name} ({data.user.email}) · Strict server-enforced role: {data.user.role}
           </p>
         </div>
 

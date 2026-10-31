@@ -9,7 +9,7 @@ export default function GlobalNotFound() {
         <Compass className="w-8 h-8" aria-hidden="true" />
       </div>
 
-      <Badge variant="navy">404 Ã¢â‚¬â€ Page Not Found</Badge>
+      <Badge variant="navy">404 — Page Not Found</Badge>
 
       <h1 className="text-3xl sm:text-4xl font-bold text-main tracking-tight">
         Page Not Found

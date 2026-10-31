@@ -360,7 +360,7 @@ export default function AddListingModal({ isOpen, onClose }: AddListingModalProp
                 defaultValue={2}
               />
               <Input
-                label="Area (mÃƒâ€šÃ‚Â²) *"
+                label="Area (m²) *"
                 name="areaSqM"
                 type="number"
                 required

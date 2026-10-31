@@ -116,7 +116,7 @@ export default function SavedProperties({
                   </span>
                   <span className="flex items-center gap-1">
                     <Maximize2 className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
-                    {formatCare(property.care)} mÃ‚Â²
+                    {formatCare(property.care)} m²
                   </span>
                 </div>
               </div>

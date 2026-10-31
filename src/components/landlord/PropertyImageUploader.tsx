@@ -37,7 +37,7 @@ export default function PropertyImageUploader({
         <div>
           <p className="text-sm font-semibold text-main">Upload Photos</p>
           <p className="mt-1 text-xs text-muted">
-            JPG, JPEG, PNG, or WEBP Ãƒâ€šÃ‚Â· up to {MAX_PROPERTY_PHOTOS} photos Ãƒâ€šÃ‚Â· 10 MB each
+            JPG, JPEG, PNG, or WEBP · up to {MAX_PROPERTY_PHOTOS} photos · 10 MB each
           </p>
         </div>
         <input
@@ -133,7 +133,7 @@ export default function PropertyImageUploader({
         </button>
       )}
       <p className="text-xs text-muted">
-        {photos.length} of {MAX_PROPERTY_PHOTOS} photos selected Ãƒâ€šÃ‚Â· max{" "}
+        {photos.length} of {MAX_PROPERTY_PHOTOS} photos selected · max{" "}
         {Math.round(MAX_PROPERTY_PHOTO_SIZE_BYTES / (1024 * 1024))} MB per photo
       </p>
     </div>

@@ -48,7 +48,7 @@ export default function LandlordDashboardClient({
             Welcome back, {user.name}
           </h1>
           <p className="text-xs text-muted mt-1">
-            {user.company ? `${user.company} Ã‚Â· ` : ""}
+            {user.company ? `${user.company} · ` : ""}
             Manage your listings, update availability, and review tenant inquiries.
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function LandlordDashboardClient({
             {myProperties.length}
           </div>
           <p className="text-[11px] text-muted mt-1">
-            {activeCount} active Ã‚Â· {myProperties.length - activeCount} leased/pending
+            {activeCount} active · {myProperties.length - activeCount} leased/pending
           </p>
         </div>
 

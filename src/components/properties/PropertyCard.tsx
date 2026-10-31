@@ -86,7 +86,7 @@ export default function PropertyCard({
           </div>
           <div className="flex items-center gap-1.5">
             <Maximize2 className="h-3.5 w-3.5 text-gold-strong" aria-hidden="true" />
-            <span>{formatCare(property.care)} mÃ‚Â²</span>
+            <span>{formatCare(property.care)} m²</span>
           </div>
         </div>
 
