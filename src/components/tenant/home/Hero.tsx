@@ -39,7 +39,7 @@ export default function Hero() {
             href="/listings"
             className="group flex items-center gap-4 rounded border border-white/20 bg-black/25 p-5 text-sm text-white backdrop-blur transition-colors hover:border-[#C5A880]"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded bg-[#C5A880] text-[#0F172A]">
+            <span className="flex h-11 w-11 items-center justify-center rounded bg-[#C5A880] text-brand-contrast">
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </span>
             <span>

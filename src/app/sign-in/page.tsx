@@ -31,14 +31,14 @@ export default function SignInPage() {
       <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:px-8">
         <div className="max-w-2xl text-white">
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur-sm">
-            <Building2 className="h-4 w-4 text-[#F3B41B]" aria-hidden="true" />
+            <Building2 className="h-4 w-4 text-gold-accent" aria-hidden="true" />
             A better way to find your next home
           </div>
 
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
             Find a place
             <br className="hidden sm:block" /> that feels{" "}
-            <span className="text-[#F3B41B]">like home.</span>
+            <span className="text-gold-accent">like home.</span>
           </h1>
           <p className="mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7">
             Explore rental homes across Addis Ababa, keep track of the places
@@ -47,7 +47,7 @@ export default function SignInPage() {
 
           <Link
             href="/listings"
-            className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#F3B41B] px-6 py-3 text-sm font-bold text-[#17191F] shadow-sm transition-colors hover:bg-[#FFC72C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F3B41B]"
+            className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#C5A880] px-6 py-3 text-sm font-bold text-brand-contrast shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#B8986C] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8C6E43]"
           >
             Explore available homes
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -55,15 +55,15 @@ export default function SignInPage() {
         </div>
 
         <div className="w-full max-w-md justify-self-center lg:justify-self-end">
-          <div className="border border-white/60 bg-[#FAF9F6] p-6 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.6)] sm:p-9">
+          <div className="border border-white/60 bg-surface-subtle p-6 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.6)] sm:p-9">
             <div className="mb-7">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A87900]">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold-strong">
                 KirayLink member access
               </p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#17191F]">
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-main">
                 Welcome back
               </h2>
-              <p className="mt-2 text-sm leading-6 text-[#626873]">
+              <p className="mt-2 text-sm leading-6 text-muted">
                 Sign in to view your saved homes and rental activity.
               </p>
             </div>
@@ -72,7 +72,7 @@ export default function SignInPage() {
               fallback={
                 <div
                   role="status"
-                  className="py-8 text-center text-sm text-[#626873]"
+                  className="py-8 text-center text-sm text-muted"
                 >
                   Loading sign-in form...
                 </div>

@@ -15,7 +15,7 @@ export default function HomePage() {
       <Hero />
       <Suspense
         fallback={
-          <div className="py-16 text-center text-sm text-[#5B677A]">
+          <div className="py-16 text-center text-sm text-muted">
             Loading available homes...
           </div>
         }

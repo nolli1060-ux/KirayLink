@@ -18,17 +18,17 @@ export default async function FeaturedProperties() {
             <Badge variant="gold" size="sm">
               Handpicked for you
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-[#0F172A]">
+            <h2 className="text-3xl font-bold tracking-tight text-main">
               Featured residences
             </h2>
-            <p className="max-w-xl text-sm text-[#5B677A]">
+            <p className="max-w-xl text-sm text-muted">
               A selection of distinguished homes in Addis Ababa&apos;s most
               sought-after neighborhoods.
             </p>
           </div>
           <Link
             href="/listings"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#8C6E43] hover:text-[#0F172A]"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gold-strong hover:text-main"
           >
             View all properties
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

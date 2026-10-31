@@ -2,243 +2,44 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SignJWT, jwtVerify } from "jose";
-import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import type { User, SessionUser, UserRole } from "@/types/user";
 import { getDatabase } from "@/lib/db";
 import { users } from "@/lib/schema";
-
-const COOKIE_NAME = "kiraylink_session";
-const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
-
-// Resolve secret key for HMAC-SHA256 signing
-function getSecretKey(): Uint8Array {
-  const secret =
-    process.env.AUTH_SECRET ||
-    "kiraylink-luxury-rentals-dev-secret-key-2026-secure-32ch";
-  return new TextEncoder().encode(secret);
-}
+import type { SessionUser, UserRole } from "@/types/user";
+import { getAuth } from "@/lib/auth/server";
 
 export async function getUserRoles(): Promise<UserRole[]> {
   const rows = await getDatabase().select({ role: users.role }).from(users);
   return rows.map((row) => row.role);
 }
 
-export async function findUserByEmail(email: string): Promise<User | undefined> {
-  const rows = await getDatabase()
-    .select()
-    .from(users)
-    .where(eq(users.emailNormalized, email.toLowerCase().trim()))
-    .limit(1);
-  const user = rows[0];
-  if (!user) return undefined;
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    passwordHash: user.passwordHash,
-    role: user.role,
-    phone: user.phone ?? undefined,
-    company: user.company ?? undefined,
-    createdAt: user.createdAt,
-  };
-}
-
-// Create and sign a secure session JWT using jose (maintained standard)
-export async function createSessionToken(user: SessionUser): Promise<string> {
-  const secretKey = getSecretKey();
-  return await new SignJWT({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    company: user.company,
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(secretKey);
-}
-
-// Set session in secure HTTP-only cookie
-export async function setSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DURATION_SECONDS,
-  });
-}
-
-// Retrieve and verify current session from HTTP-only cookie
 export async function getSession(): Promise<SessionUser | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(COOKIE_NAME);
-
-    if (!sessionCookie || !sessionCookie.value) {
-      return null;
-    }
-
-    const secretKey = getSecretKey();
-    const { payload } = await jwtVerify(sessionCookie.value, secretKey);
-
-    return {
-      id: payload.id as string,
-      name: payload.name as string,
-      email: payload.email as string,
-      role: payload.role as UserRole,
-      company: payload.company as string | undefined,
-    };
-  } catch {
-    // Token is expired, invalid, or tampered with
-    return null;
-  }
-}
-
-// Server Action: Sign In
-export async function signInAction(
-  prevState: { success: boolean; error?: string } | null,
-  formData: FormData
-): Promise<{ success: boolean; error?: string; redirectUrl?: string }> {
-  const email = (formData.get("email") as string)?.trim() || "";
-  const password = (formData.get("password") as string) || "";
-  const returnUrl = (formData.get("returnUrl") as string) || "";
-
-  if (!email || !password) {
-    return { success: false, error: "Please enter both email and password." };
+  await cookies();
+  const { data: session, error } = await getAuth().getSession();
+  if (error) {
+    throw new Error(`Could not read the authentication session: ${error.message}`);
   }
 
-  const user = await findUserByEmail(email);
-  if (!user) {
-    return { success: false, error: "Invalid email or password." };
-  }
+  const authUser = session?.user;
+  if (!authUser) return null;
 
-  const isPasswordValid = bcrypt.compareSync(password, user.passwordHash);
-  if (!isPasswordValid) {
-    return { success: false, error: "Invalid email or password." };
-  }
+  const [profile] = await getDatabase()
+    .select({ role: users.role, company: users.company })
+    .from(users)
+    .where(eq(users.id, authUser.id))
+    .limit(1);
 
-  const sessionUser: SessionUser = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    company: user.company,
+  if (!profile) return null;
+
+  return {
+    id: authUser.id,
+    name: authUser.name,
+    email: authUser.email,
+    role: profile.role,
+    company: profile.company ?? undefined,
   };
-
-  const token = await createSessionToken(sessionUser);
-  await setSessionCookie(token);
-
-  // Safe redirect destination
-  let destination = returnUrl && returnUrl.startsWith("/") ? returnUrl : "";
-  if (!destination) {
-    if (user.role === "landlord") destination = "/landlord/dashboard";
-    else if (user.role === "admin") destination = "/admin/dashboard";
-    else destination = "/tenant/dashboard";
-  }
-
-  return { success: true, redirectUrl: destination };
 }
 
-// Server Action: Sign Up
-export async function signUpAction(
-  prevState: { success: boolean; error?: string } | null,
-  formData: FormData
-): Promise<{ success: boolean; error?: string; redirectUrl?: string }> {
-  const name = (formData.get("name") as string)?.trim() || "";
-  const email = (formData.get("email") as string)?.trim() || "";
-  const password = (formData.get("password") as string) || "";
-  const role = (formData.get("role") as UserRole) || "tenant";
-  const company = (formData.get("company") as string)?.trim() || undefined;
-  const phone = (formData.get("phone") as string)?.trim() || undefined;
-
-  // Validation
-  if (!name || name.length < 2) {
-    return { success: false, error: "Name must be at least 2 characters long." };
-  }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { success: false, error: "Please enter a valid email address." };
-  }
-  if (!password || password.length < 6) {
-    return { success: false, error: "Password must be at least 6 characters long." };
-  }
-  if (role !== "tenant" && role !== "landlord") {
-    return { success: false, error: "Please select a valid account role." };
-  }
-
-  const existingUser = await findUserByEmail(email);
-  if (existingUser) {
-    return {
-      success: false,
-      error: "An account with this email address already exists.",
-    };
-  }
-
-  // Hash password using maintained bcryptjs library (10 rounds)
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const newUser: User = {
-    id: `usr-${role}-${Date.now()}`,
-    name,
-    email,
-    passwordHash,
-    role,
-    company,
-    phone,
-    createdAt: new Date().toISOString(),
-  };
-
-  const insertedUsers = await getDatabase()
-    .insert(users)
-    .values({
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      emailNormalized: newUser.email.toLowerCase().trim(),
-      passwordHash: newUser.passwordHash,
-      role: newUser.role,
-      phone: newUser.phone,
-      company: newUser.company,
-      createdAt: newUser.createdAt,
-    })
-    .onConflictDoNothing()
-    .returning({ id: users.id });
-  if (insertedUsers.length === 0) {
-    return {
-      success: false,
-      error: "An account with this email address already exists.",
-    };
-  }
-
-  // Create session and log in immediately
-  const sessionUser: SessionUser = {
-    id: newUser.id,
-    name: newUser.name,
-    email: newUser.email,
-    role: newUser.role,
-    company: newUser.company,
-  };
-
-  const token = await createSessionToken(sessionUser);
-  await setSessionCookie(token);
-
-  const destination =
-    role === "landlord" ? "/landlord/dashboard" : "/tenant/dashboard";
-
-  return { success: true, redirectUrl: destination };
-}
-
-// Server Action: Sign Out
-export async function signOutAction(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
-  redirect("/sign-in");
-}
-
-// Server-side Route Guard for Protected Pages
 export async function requireAuth(
   requiredRole?: UserRole,
   currentPath?: string
@@ -252,9 +53,7 @@ export async function requireAuth(
     redirect(`/sign-in${returnParam}`);
   }
 
-  // Role authorization check
   if (requiredRole && session.role !== requiredRole && session.role !== "admin") {
-    // If user lacks required role, route to their authorized dashboard
     if (session.role === "tenant") redirect("/tenant/dashboard");
     if (session.role === "landlord") redirect("/landlord/dashboard");
     redirect("/");

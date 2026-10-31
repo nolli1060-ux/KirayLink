@@ -35,9 +35,9 @@ export default function TenantInquiries({ inquiries }: TenantInquiriesProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[#5B677A] pb-2 border-b border-[#E6E0D5]">
+      <div className="flex items-center justify-between text-xs text-muted pb-2 border-b border-border">
         <span>
-          Showing <strong className="text-[#0F172A]">{inquiries.length}</strong> sent{" "}
+          Showing <strong className="text-main">{inquiries.length}</strong> sent{" "}
           {inquiries.length === 1 ? "inquiry" : "inquiries"}
         </span>
       </div>
@@ -46,22 +46,22 @@ export default function TenantInquiries({ inquiries }: TenantInquiriesProps) {
         {inquiries.map((inq) => (
           <div
             key={inq.id}
-            className="bg-white border border-[#E6E0D5] rounded-lg p-5 space-y-3 shadow-sm hover:border-[#C5A880] transition-colors"
+            className="bg-surface border border-border rounded-lg p-5 space-y-3 shadow-sm hover:border-[#C5A880] transition-colors"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F0ECE3] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-[#0F172A]">
+                  <h3 className="text-sm font-bold text-main">
                     {inq.propertyTitle}
                   </h3>
                   {inq.propertyPrice && (
-                    <span className="text-xs font-semibold text-[#8C6E43]">
+                    <span className="text-xs font-semibold text-gold-strong">
                       ({formatPrice(inq.propertyPrice)})
                     </span>
                   )}
                 </div>
                 {inq.propertyLocation && (
-                  <p className="text-xs text-[#5B677A] mt-0.5">
+                  <p className="text-xs text-muted mt-0.5">
                     {inq.propertyLocation}
                   </p>
                 )}
@@ -71,7 +71,7 @@ export default function TenantInquiries({ inquiries }: TenantInquiriesProps) {
                 {getStatusBadge(inq.status)}
                 <Link
                   href={`/properties/${inq.propertyId}`}
-                  className="inline-flex items-center text-xs font-semibold text-[#8C6E43] hover:text-[#0F172A]"
+                  className="inline-flex items-center text-xs font-semibold text-gold-strong hover:text-main"
                 >
                   <span>View</span>
                   <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" aria-hidden="true" />
@@ -79,22 +79,22 @@ export default function TenantInquiries({ inquiries }: TenantInquiriesProps) {
               </div>
             </div>
 
-            <div className="bg-[#FDFBF7] border border-[#E6E0D5] rounded p-3 text-xs text-[#0F172A] leading-relaxed">
-              <span className="text-[10px] font-bold uppercase text-[#8C6E43] block mb-1">
+            <div className="bg-ivory border border-border rounded p-3 text-xs text-main leading-relaxed">
+              <span className="text-[10px] font-bold uppercase text-gold-strong block mb-1">
                 Your Message
               </span>
               {inq.message}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#5B677A] pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted pt-1">
               <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                <Clock className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                 Sent on {new Date(inq.createdAt).toLocaleDateString()}
               </span>
 
               {inq.moveInDate && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                  <Calendar className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                   Target Move-in: {inq.moveInDate}
                 </span>
               )}

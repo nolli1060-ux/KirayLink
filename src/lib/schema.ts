@@ -20,7 +20,7 @@ export const users = pgTable(
     name: text("name").notNull(),
     email: text("email").notNull(),
     emailNormalized: text("email_normalized").notNull(),
-    passwordHash: text("password_hash").notNull(),
+    passwordHash: text("password_hash"),
     role: text("role").$type<UserRole>().notNull(),
     phone: text("phone"),
     company: text("company"),

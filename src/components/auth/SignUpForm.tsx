@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, Phone, ShieldAlert, ArrowRight } from "lucide-react";
-import { signUpAction } from "@/lib/auth";
+import { authClient } from "@/lib/auth/client";
 import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -34,8 +34,8 @@ export default function SignUpForm() {
       setErrorMessage("Please enter a valid email address.");
       return;
     }
-    if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters long.");
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
       return;
     }
     if (password !== confirmPassword) {
@@ -46,24 +46,43 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.set("name", name.trim());
-      formData.set("email", email.trim());
-      formData.set("password", password);
-      formData.set("role", role);
-      if (phone.trim()) formData.set("phone", phone.trim());
+      const { error } = await authClient.signUp.email({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
-      const result = await signUpAction(null, formData);
-
-      if (!result.success) {
-        setErrorMessage(result.error || "Sign-up failed. Please review your details.");
-        setIsLoading(false);
-      } else if (result.redirectUrl) {
-        router.push(result.redirectUrl);
-        router.refresh();
+      if (error) {
+        setErrorMessage(error.message || "Sign-up failed. Please review your details.");
+        return;
       }
+
+      const profileResponse = await fetch("/api/auth/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, phone: phone.trim() || undefined }),
+      });
+      const profileResult = (await profileResponse.json()) as {
+        user?: { role: UserRole };
+        error?: string;
+      };
+
+      if (!profileResponse.ok || !profileResult.user) {
+        setErrorMessage(
+          profileResult.error || "Your account was created, but its profile could not be saved."
+        );
+        return;
+      }
+
+      router.push(
+        profileResult.user.role === "landlord"
+          ? "/landlord/dashboard"
+          : "/tenant/dashboard"
+      );
+      router.refresh();
     } catch {
       setErrorMessage("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -72,7 +91,7 @@ export default function SignUpForm() {
     <div className="space-y-6">
       {/* Account Type Selector Tabs */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-main block">
           Select Account Type
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -82,13 +101,13 @@ export default function SignUpForm() {
             className={`p-3 rounded border text-left transition-all cursor-pointer ${
               role === "tenant"
                 ? "bg-[#0F172A] text-white border-[#0F172A]"
-                : "bg-white text-[#5B677A] border-[#E6E0D5] hover:border-[#C5A880]"
+                : "bg-surface text-muted border-border hover:border-[#C5A880]"
             }`}
           >
             <div className="font-semibold text-xs">Prospective Tenant</div>
             <div
               className={`text-[11px] ${
-                role === "tenant" ? "text-slate-300" : "text-slate-400"
+                role === "tenant" ? "text-slate-300" : "text-muted"
               }`}
             >
               Discover & rent residences
@@ -101,13 +120,13 @@ export default function SignUpForm() {
             className={`p-3 rounded border text-left transition-all cursor-pointer ${
               role === "landlord"
                 ? "bg-[#0F172A] text-white border-[#0F172A]"
-                : "bg-white text-[#5B677A] border-[#E6E0D5] hover:border-[#C5A880]"
+                : "bg-surface text-muted border-border hover:border-[#C5A880]"
             }`}
           >
             <div className="font-semibold text-xs">Property Landlord</div>
             <div
               className={`text-[11px] ${
-                role === "landlord" ? "text-slate-300" : "text-slate-400"
+                role === "landlord" ? "text-slate-300" : "text-muted"
               }`}
             >
               List & manage properties
@@ -120,7 +139,7 @@ export default function SignUpForm() {
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="p-3.5 rounded bg-error-bg border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-error"
           >
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{errorMessage}</span>
@@ -163,7 +182,7 @@ export default function SignUpForm() {
             label="Create Password"
             type="password"
             autoComplete="new-password"
-            placeholder="Min 6 characters"
+            placeholder="Min 8 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             icon={<Lock className="w-4 h-4" aria-hidden="true" />}
@@ -194,11 +213,11 @@ export default function SignUpForm() {
         </Button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#5B677A]">
+      <div className="text-center pt-2 text-xs text-muted">
         Already have an account?{" "}
         <Link
           href="/sign-in"
-          className="font-semibold text-[#8C6E43] hover:text-[#0F172A] underline"
+          className="font-semibold text-gold-strong hover:text-main underline"
         >
           Sign in
         </Link>

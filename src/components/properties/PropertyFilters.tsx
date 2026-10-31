@@ -16,20 +16,21 @@ interface PropertyFiltersProps {
 const propertyTypes = [
   "All Types",
   "Apartment",
-  "Penthouse",
   "Villa",
-  "Townhouse",
   "Studio",
+  "Condominium",
 ];
 
 const neighborhoods = [
   "All Districts",
-  "Bole Atlas",
-  "Old Airport",
+  "Bole Arabsa",
+  "Ayat",
+  "Jemo",
+  "Mexico",
+  "Ferensay",
   "Kazanchis",
-  "Sarbet",
-  "CMC",
-  "Bole Medhanialem",
+  "Summit",
+  "Megenagna",
 ];
 
 const bedroomOptions = [
@@ -37,7 +38,6 @@ const bedroomOptions = [
   { value: "1", label: "1 Bed" },
   { value: "2", label: "2 Beds" },
   { value: "3", label: "3 Beds" },
-  { value: "4", label: "4+ Beds" },
 ];
 
 export default function PropertyFilters({
@@ -50,17 +50,17 @@ export default function PropertyFilters({
   const content = (
     <div className="space-y-6">
       {/* Filter Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D5]">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-[#8C6E43]" aria-hidden="true" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#0F172A]">
+          <SlidersHorizontal className="w-4 h-4 text-gold-strong" aria-hidden="true" />
+          <h2 className="text-sm font-bold uppercase tracking-wider text-main">
             Filter Residences
           </h2>
         </div>
         <button
           type="button"
           onClick={onReset}
-          className="text-xs text-[#8C6E43] hover:text-[#0F172A] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+          className="text-xs text-gold-strong hover:text-main font-semibold flex items-center gap-1 transition-colors cursor-pointer"
         >
           <RotateCcw className="w-3 h-3" aria-hidden="true" />
           <span>Reset</span>
@@ -71,7 +71,7 @@ export default function PropertyFilters({
       <div className="space-y-2">
         <label
           htmlFor="filter-property-type"
-          className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider block"
+          className="text-xs font-semibold text-main uppercase tracking-wider block"
         >
           Property Type
         </label>
@@ -79,7 +79,7 @@ export default function PropertyFilters({
           id="filter-property-type"
           value={filters.propertyType}
           onChange={(e) => onChange({ propertyType: e.target.value })}
-          className="w-full bg-[#FDFBF7] border border-[#E6E0D5] rounded px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+          className="w-full bg-ivory border border-border rounded px-3 py-2 text-sm text-main focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
         >
           {propertyTypes.map((type) => (
             <option
@@ -96,7 +96,7 @@ export default function PropertyFilters({
       <div className="space-y-2">
         <label
           htmlFor="filter-neighborhood"
-          className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider block"
+          className="text-xs font-semibold text-main uppercase tracking-wider block"
         >
           District
         </label>
@@ -104,7 +104,7 @@ export default function PropertyFilters({
           id="filter-neighborhood"
           value={filters.neighborhood}
           onChange={(e) => onChange({ neighborhood: e.target.value })}
-          className="w-full bg-[#FDFBF7] border border-[#E6E0D5] rounded px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+          className="w-full bg-ivory border border-border rounded px-3 py-2 text-sm text-main focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
         >
           {neighborhoods.map((district) => (
             <option
@@ -119,7 +119,7 @@ export default function PropertyFilters({
 
       {/* 3. Bedrooms */}
       <div className="space-y-2">
-        <span className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider block">
+        <span className="text-xs font-semibold text-main uppercase tracking-wider block">
           Bedrooms
         </span>
         <div className="grid grid-cols-5 gap-1">
@@ -133,7 +133,7 @@ export default function PropertyFilters({
                 className={`py-1.5 text-xs font-medium rounded border transition-colors cursor-pointer text-center ${
                   isSelected
                     ? "bg-[#0F172A] text-white border-[#0F172A]"
-                    : "bg-[#FDFBF7] text-[#5B677A] border-[#E6E0D5] hover:border-[#C5A880] hover:text-[#0F172A]"
+                    : "bg-ivory text-muted border-border hover:border-[#C5A880] hover:text-main"
                 }`}
               >
                 {opt.label}
@@ -146,10 +146,10 @@ export default function PropertyFilters({
       {/* 4. Price Range */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
+          <span className="text-xs font-semibold text-main uppercase tracking-wider">
             Monthly Rent (ETB)
           </span>
-          <span className="text-xs text-[#8C6E43] font-semibold">
+          <span className="text-xs text-gold-strong font-semibold">
             ETB {formatNumber(filters.minPrice)} - ETB {formatNumber(filters.maxPrice)}
           </span>
         </div>
@@ -158,27 +158,27 @@ export default function PropertyFilters({
           <div>
             <label
               htmlFor="min-price-input"
-              className="text-[10px] text-[#5B677A] uppercase block mb-1"
+              className="text-[10px] text-muted uppercase block mb-1"
             >
               Min (ETB)
             </label>
             <input
               id="min-price-input"
               type="number"
-              min="0"
-              step="1000"
+              min="1000"
+              step="500"
               value={filters.minPrice}
               onChange={(e) =>
-                onChange({ minPrice: Number(e.target.value) || 0 })
+                onChange({ minPrice: Number(e.target.value) || 1000 })
               }
-              className="w-full bg-[#FDFBF7] border border-[#E6E0D5] rounded px-2.5 py-1.5 text-xs text-[#0F172A]"
+              className="w-full bg-ivory border border-border rounded px-2.5 py-1.5 text-xs text-main"
             />
           </div>
 
           <div>
             <label
               htmlFor="max-price-input"
-              className="text-[10px] text-[#5B677A] uppercase block mb-1"
+              className="text-[10px] text-muted uppercase block mb-1"
             >
               Max (ETB)
             </label>
@@ -186,12 +186,12 @@ export default function PropertyFilters({
               id="max-price-input"
               type="number"
               min="1000"
-              step="1000"
+              step="500"
               value={filters.maxPrice}
               onChange={(e) =>
                 onChange({ maxPrice: Number(e.target.value) || 100000 })
               }
-              className="w-full bg-[#FDFBF7] border border-[#E6E0D5] rounded px-2.5 py-1.5 text-xs text-[#0F172A]"
+              className="w-full bg-ivory border border-border rounded px-2.5 py-1.5 text-xs text-main"
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function PropertyFilters({
       {/* Desktop Sidebar */}
       <aside
         aria-label="Property filters"
-        className="hidden lg:block w-72 bg-white border border-[#E6E0D5] rounded-lg p-5 shrink-0 self-start sticky top-28"
+        className="hidden lg:block w-72 bg-surface border border-border rounded-lg p-5 shrink-0 self-start sticky top-28"
       >
         {content}
       </aside>
@@ -217,15 +217,15 @@ export default function PropertyFilters({
           aria-label="Filter residences"
           className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
         >
-          <div className="bg-white w-full sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-xl p-6 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D5]">
-              <h2 className="text-base font-bold text-[#0F172A]">
+          <div className="bg-surface w-full sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-xl sm:rounded-xl p-6 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h2 className="text-base font-bold text-main">
                 Filters
               </h2>
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="p-1 rounded text-slate-500 hover:text-black cursor-pointer"
+                className="p-1 rounded text-muted hover:text-main cursor-pointer"
                 aria-label="Close filters"
               >
                 <X className="w-5 h-5" aria-hidden="true" />
@@ -234,7 +234,7 @@ export default function PropertyFilters({
 
             {content}
 
-            <div className="pt-4 border-t border-[#E6E0D5] flex gap-3">
+            <div className="pt-4 border-t border-border flex gap-3">
               <Button
                 variant="outline"
                 size="md"

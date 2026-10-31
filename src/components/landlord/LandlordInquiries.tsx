@@ -47,15 +47,15 @@ export default function LandlordInquiries({
 
   if (inquiries.length === 0) {
     return (
-      <div className="text-center py-12 px-4 rounded-xl border border-dashed border-[#E6E0D5] bg-[#FDFBF7] space-y-4">
-        <div className="w-12 h-12 rounded-full bg-[#F7F3EC] text-[#8C6E43] mx-auto flex items-center justify-center">
+      <div className="text-center py-12 px-4 rounded-xl border border-dashed border-border bg-ivory space-y-4">
+        <div className="w-12 h-12 rounded-full bg-gold-light text-gold-strong mx-auto flex items-center justify-center">
           <MessageSquare className="w-6 h-6" aria-hidden="true" />
         </div>
         <div className="space-y-1 max-w-sm mx-auto">
-          <h3 className="text-base font-bold text-[#0F172A]">
+          <h3 className="text-base font-bold text-main">
             No tenant inquiries received
           </h3>
-          <p className="text-xs text-[#5B677A] leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             When verified tenants inquire on your listed residences, their
             direct contact details and messages will be organized here.
           </p>
@@ -77,9 +77,9 @@ export default function LandlordInquiries({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[#5B677A] pb-2 border-b border-[#E6E0D5]">
+      <div className="flex items-center justify-between text-xs text-muted pb-2 border-b border-border">
         <span>
-          Showing <strong className="text-[#0F172A]">{inquiries.length}</strong> incoming{" "}
+          Showing <strong className="text-main">{inquiries.length}</strong> incoming{" "}
           {inquiries.length === 1 ? "inquiry" : "inquiries"}
         </span>
       </div>
@@ -88,29 +88,29 @@ export default function LandlordInquiries({
         {inquiries.map((inq) => (
           <div
             key={inq.id}
-            className="bg-white border border-[#E6E0D5] rounded-lg p-5 space-y-4 shadow-sm hover:border-[#C5A880] transition-colors"
+            className="bg-surface border border-border rounded-lg p-5 space-y-4 shadow-sm hover:border-[#C5A880] transition-colors"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F0ECE3] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-subtle pb-3">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-[#8C6E43]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-gold-strong">
                   Prospective Tenant
                 </span>
-                <h3 className="text-base font-bold text-[#0F172A]">
+                <h3 className="text-base font-bold text-main">
                   {inq.tenantName}
                 </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#5B677A] mt-1">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted mt-1">
                   <a
                     href={`mailto:${inq.tenantEmail}`}
-                    className="flex items-center gap-1 hover:text-[#0F172A]"
+                    className="flex items-center gap-1 hover:text-main"
                   >
-                    <Mail className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                    <Mail className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                     <span>{inq.tenantEmail}</span>
                   </a>
                   <a
                     href={`tel:${inq.tenantPhone}`}
-                    className="flex items-center gap-1 hover:text-[#0F172A]"
+                    className="flex items-center gap-1 hover:text-main"
                   >
-                    <Phone className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                    <Phone className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                     <span>{inq.tenantPhone}</span>
                   </a>
                 </div>
@@ -122,21 +122,21 @@ export default function LandlordInquiries({
             </div>
 
             {/* Inquired Property Reference */}
-            <div className="flex items-center justify-between bg-[#FDFBF7] p-2.5 rounded border border-[#E6E0D5] text-xs">
+            <div className="flex items-center justify-between bg-ivory p-2.5 rounded border border-border text-xs">
               <div>
-                <span className="text-[10px] uppercase text-[#8C6E43] font-semibold">
+                <span className="text-[10px] uppercase text-gold-strong font-semibold">
                   Property Inquired:
                 </span>{" "}
-                <strong className="text-[#0F172A]">{inq.propertyTitle}</strong>{" "}
+                <strong className="text-main">{inq.propertyTitle}</strong>{" "}
                 {inq.propertyPrice && (
-                  <span className="text-[#5B677A]">
+                  <span className="text-muted">
                     ({formatPrice(inq.propertyPrice)})
                   </span>
                 )}
               </div>
               <Link
                 href={`/properties/${inq.propertyId}`}
-                className="text-xs font-semibold text-[#8C6E43] hover:text-[#0F172A] flex items-center gap-0.5"
+                className="text-xs font-semibold text-gold-strong hover:text-main flex items-center gap-0.5"
               >
                 <span>View</span>
                 <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -144,23 +144,23 @@ export default function LandlordInquiries({
             </div>
 
             {/* Message Body */}
-            <div className="text-xs text-[#0F172A] leading-relaxed bg-white border border-[#E6E0D5] p-3 rounded">
-              <span className="text-[10px] font-bold uppercase text-[#8C6E43] block mb-1">
+            <div className="text-xs text-main leading-relaxed bg-surface border border-border p-3 rounded">
+              <span className="text-[10px] font-bold uppercase text-gold-strong block mb-1">
                 Message Content
               </span>
               {inq.message}
             </div>
 
             {/* Footer with Timestamp & Status Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs border-t border-[#F0ECE3]">
-              <div className="flex items-center gap-4 text-[11px] text-[#5B677A]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs border-t border-border-subtle">
+              <div className="flex items-center gap-4 text-[11px] text-muted">
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                  <Clock className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                   Received {new Date(inq.createdAt).toLocaleDateString()}
                 </span>
                 {inq.moveInDate && (
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                    <Calendar className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                     Target Move-in: {inq.moveInDate}
                   </span>
                 )}
@@ -173,7 +173,7 @@ export default function LandlordInquiries({
                     type="button"
                     onClick={() => handleStatusUpdate(inq.id, "reviewed")}
                     disabled={updatingId === inq.id}
-                    className="px-2.5 py-1 text-xs rounded border border-[#E6E0D5] bg-[#FDFBF7] hover:bg-[#F5F1E8] text-[#0F172A] font-medium cursor-pointer"
+                    className="px-2.5 py-1 text-xs rounded border border-border bg-ivory hover:bg-gold-light text-main font-medium cursor-pointer"
                   >
                     Mark Reviewed
                   </button>
@@ -184,7 +184,7 @@ export default function LandlordInquiries({
                     type="button"
                     onClick={() => handleStatusUpdate(inq.id, "responded")}
                     disabled={updatingId === inq.id}
-                    className="px-2.5 py-1 text-xs rounded border border-[#1B6348]/30 bg-[#EDF7F2] hover:bg-[#E2F2E9] text-[#1B6348] font-medium flex items-center gap-1 cursor-pointer"
+                    className="px-2.5 py-1 text-xs rounded border border-[#1B6348]/30 bg-success-bg hover:bg-success-bg text-success font-medium flex items-center gap-1 cursor-pointer"
                   >
                     <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
                     <span>Mark Responded</span>

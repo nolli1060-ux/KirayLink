@@ -8,13 +8,13 @@ export default function Footer() {
         <div className="max-w-sm">
           <Link
             href="/"
-            className="inline-flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F3B41B]"
+            className="inline-flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8C6E43]"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3B41B] text-[#17191F]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C5A880] text-brand-contrast">
               <Building2 className="h-5 w-5" aria-hidden="true" />
             </span>
             <span className="text-lg font-bold tracking-tight">
-              Kiray<span className="text-[#F3B41B]">Link</span>
+              Kiray<span className="text-gold-accent">Link</span>
             </span>
           </Link>
           <p className="mt-4 text-sm leading-6 text-white/60">
@@ -28,17 +28,17 @@ export default function Footer() {
             Explore
           </h2>
           <div className="mt-4 flex flex-col items-start gap-3 text-sm text-white/75">
-            <Link className="transition-colors hover:text-[#F3B41B]" href="/">
+            <Link className="transition-colors hover:text-gold-accent" href="/">
               Home
             </Link>
             <Link
-              className="transition-colors hover:text-[#F3B41B]"
+              className="transition-colors hover:text-gold-accent"
               href="/listings"
             >
               Browse homes
             </Link>
             <Link
-              className="transition-colors hover:text-[#F3B41B]"
+              className="transition-colors hover:text-gold-accent"
               href="/sign-up?role=landlord"
             >
               List a property
@@ -52,13 +52,13 @@ export default function Footer() {
           </h2>
           <div className="mt-4 flex flex-col items-start gap-3 text-sm text-white/75">
             <Link
-              className="transition-colors hover:text-[#F3B41B]"
+              className="transition-colors hover:text-gold-accent"
               href="/sign-in"
             >
               Sign in
             </Link>
             <Link
-              className="inline-flex items-center gap-1 transition-colors hover:text-[#F3B41B]"
+              className="inline-flex items-center gap-1 transition-colors hover:text-gold-accent"
               href="/sign-up"
             >
               Create an account

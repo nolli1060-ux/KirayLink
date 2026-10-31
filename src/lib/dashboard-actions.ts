@@ -10,6 +10,11 @@ import {
   setPropertyStatus,
   deletePropertyRecord,
 } from "@/lib/properties-store";
+import {
+  createPropertyImageReference,
+  isPropertyImageKeyOwnedBy,
+  MAX_PROPERTY_PHOTOS,
+} from "@/lib/property-image-constants";
 import type { Property, PropertyStatus, PropertyType } from "@/types/property";
 import type { Inquiry, InquiryStatus } from "@/types/inquiry";
 import { getDatabase } from "@/lib/db";
@@ -179,11 +184,38 @@ export async function createPropertyAction(
   const location = (formData.get("location") as string)?.trim() || "";
   const neighborhood = (formData.get("neighborhood") as string)?.trim() || "";
   const city = (formData.get("city") as string)?.trim() || "Addis Ababa";
-  const imageUrl =
-    (formData.get("imageUrl") as string)?.trim() ||
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80";
+  const imagesRaw = formData.get("images");
   const amenitiesRaw = (formData.get("amenities") as string)?.trim() || "";
   const furnished = formData.get("furnished") === "true";
+
+  let uploadedImageKeys: string[] = [];
+  if (typeof imagesRaw === "string" && imagesRaw.length > 0) {
+    try {
+      const parsedImages: unknown = JSON.parse(imagesRaw);
+      if (
+        !Array.isArray(parsedImages) ||
+        parsedImages.length > MAX_PROPERTY_PHOTOS ||
+        new Set(parsedImages).size !== parsedImages.length ||
+        !parsedImages.every(
+          (key): key is string =>
+            typeof key === "string" && isPropertyImageKeyOwnedBy(key, session.id)
+        )
+      ) {
+        return { success: false, error: "The uploaded property photos are invalid." };
+      }
+      uploadedImageKeys = parsedImages;
+    } catch {
+      return { success: false, error: "The uploaded property photos are invalid." };
+    }
+  } else if (imagesRaw !== null) {
+    return { success: false, error: "The uploaded property photos are invalid." };
+  }
+
+  const imageReferences = uploadedImageKeys.length
+    ? uploadedImageKeys.map(createPropertyImageReference)
+    : [
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+      ];
 
   // Strict validation
   if (!title || title.length < 5) {
@@ -243,8 +275,8 @@ export async function createPropertyAction(
     bedrooms,
     bathrooms,
     care: areaSqM,
-    imageUrl,
-    images: [imageUrl],
+    imageUrl: imageReferences[0],
+    images: imageReferences,
     amenities: amenitiesList,
     featured: false,
     status: "available",

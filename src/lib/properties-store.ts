@@ -2,6 +2,7 @@ import type { Property, PropertyStatus } from "@/types/property";
 import { getDatabase } from "@/lib/db";
 import { properties } from "@/lib/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
+import { resolvePropertyImages } from "@/lib/property-images";
 
 export async function getAllActiveProperties(): Promise<Property[]> {
   const rows = await getDatabase()
@@ -9,10 +10,12 @@ export async function getAllActiveProperties(): Promise<Property[]> {
     .from(properties)
     .where(eq(properties.isDeleted, false))
     .orderBy(desc(properties.createdAt));
-  return rows.map((row) => ({
-    ...row.data,
-    status: row.status,
-  }));
+  return rows.map((row) =>
+    resolvePropertyImages({
+      ...row.data,
+      status: row.status,
+    })
+  );
 }
 
 export async function getActivePropertyById(
@@ -24,10 +27,10 @@ export async function getActivePropertyById(
     .where(and(eq(properties.id, id), eq(properties.isDeleted, false)))
     .limit(1);
   if (!rows[0]) return undefined;
-  return {
+  return resolvePropertyImages({
     ...rows[0].data,
     status: rows[0].status,
-  };
+  });
 }
 
 export async function createPropertyRecord(property: Property): Promise<void> {

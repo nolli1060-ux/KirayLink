@@ -47,15 +47,15 @@ export default function SavePropertyButton({
         className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
           isSaved
             ? "bg-[#0F172A] text-white border-[#0F172A] hover:bg-[#1E293B]"
-            : "bg-white text-[#0F172A] border-[#CBD5E1] hover:border-[#C5A880] hover:bg-[#FDFBF7]"
+            : "bg-surface text-main border-border hover:border-[#C5A880] hover:bg-ivory"
         }`}
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
         ) : isSaved ? (
-          <Check className="w-4 h-4 text-[#C5A880]" aria-hidden="true" />
+          <Check className="w-4 h-4 text-gold-accent" aria-hidden="true" />
         ) : (
-          <Bookmark className="w-4 h-4 text-[#8C6E43]" aria-hidden="true" />
+          <Bookmark className="w-4 h-4 text-gold-strong" aria-hidden="true" />
         )}
         <span>{isSaved ? "Saved in Collection" : "Save Residence"}</span>
       </button>
@@ -63,7 +63,7 @@ export default function SavePropertyButton({
       {feedback && (
         <span
           role="status"
-          className="absolute -bottom-7 left-0 whitespace-nowrap text-[11px] font-medium text-[#8C6E43] bg-[#FDFBF7] px-2 py-0.5 rounded border border-[#E6E0D5] shadow-xs"
+          className="absolute -bottom-7 left-0 whitespace-nowrap text-[11px] font-medium text-gold-strong bg-ivory px-2 py-0.5 rounded border border-border shadow-xs"
         >
           {feedback}
         </span>

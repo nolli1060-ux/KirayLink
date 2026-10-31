@@ -1,8 +1,12 @@
 import { defineConfig } from "@neon/config/v1";
+import { PROPERTY_IMAGE_BUCKET } from "./src/lib/property-image-constants";
 
 export default defineConfig({
   // Declare your Neon services here
-  auth: false,
+  auth: true,
+  buckets: {
+    [PROPERTY_IMAGE_BUCKET]: { access: "public_read" },
+  },
   // Branch policy: per-branch tuning
   branch: (branch) => {
     if (branch.isDefault) {

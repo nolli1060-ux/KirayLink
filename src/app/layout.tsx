@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#0F172A] antialiased selection:bg-[#C5A880]/30 selection:text-[#0F172A]">
+      <body className="min-h-screen flex flex-col bg-ivory text-main antialiased selection:bg-[#C5A880]/30 selection:text-main">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

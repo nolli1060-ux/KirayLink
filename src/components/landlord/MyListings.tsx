@@ -61,15 +61,15 @@ export default function MyListings({
 
   if (properties.length === 0) {
     return (
-      <div className="text-center py-12 px-4 rounded-xl border border-dashed border-[#E6E0D5] bg-[#FDFBF7] space-y-4">
-        <div className="w-12 h-12 rounded-full bg-[#F7F3EC] text-[#8C6E43] mx-auto flex items-center justify-center">
+      <div className="text-center py-12 px-4 rounded-xl border border-dashed border-border bg-ivory space-y-4">
+        <div className="w-12 h-12 rounded-full bg-gold-light text-gold-strong mx-auto flex items-center justify-center">
           <Building2 className="w-6 h-6" aria-hidden="true" />
         </div>
         <div className="space-y-1 max-w-sm mx-auto">
-          <h3 className="text-base font-bold text-[#0F172A]">
+          <h3 className="text-base font-bold text-main">
             No properties listed yet
           </h3>
-          <p className="text-xs text-[#5B677A] leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Add a property listing so people looking for a rental can find it.
           </p>
         </div>
@@ -84,15 +84,15 @@ export default function MyListings({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[#5B677A] pb-2 border-b border-[#E6E0D5]">
+      <div className="flex items-center justify-between text-xs text-muted pb-2 border-b border-border">
         <span>
-          Showing <strong className="text-[#0F172A]">{properties.length}</strong> owned{" "}
+          Showing <strong className="text-main">{properties.length}</strong> owned{" "}
           {properties.length === 1 ? "residence" : "residences"}
         </span>
         <button
           type="button"
           onClick={onOpenAddModal}
-          className="text-[#8C6E43] font-semibold hover:underline cursor-pointer"
+          className="text-gold-strong font-semibold hover:underline cursor-pointer"
         >
           + Add New Property
         </button>
@@ -102,14 +102,15 @@ export default function MyListings({
         {properties.map((property) => (
           <article
             key={property.id}
-            className="bg-white rounded-lg border border-[#E6E0D5] p-5 shadow-sm hover:border-[#C5A880] transition-colors flex flex-col md:flex-row gap-5 items-start md:items-center justify-between"
+            className="bg-surface rounded-lg border border-border p-5 shadow-sm hover:border-[#C5A880] transition-colors flex flex-col md:flex-row gap-5 items-start md:items-center justify-between"
           >
             <div className="flex items-start gap-4 flex-1">
-              <div className="relative w-24 h-20 rounded overflow-hidden bg-slate-100 shrink-0">
+              <div className="relative w-24 h-20 rounded overflow-hidden bg-surface-subtle shrink-0">
                 <Image
                   src={property.imageUrl}
                   alt={property.title}
                   fill
+                  unoptimized
                   sizes="100px"
                   className="object-cover"
                 />
@@ -134,35 +135,35 @@ export default function MyListings({
                   </Badge>
                 </div>
 
-                <h3 className="text-sm font-bold text-[#0F172A]">
+                <h3 className="text-sm font-bold text-main">
                   {property.title}
                 </h3>
 
-                <p className="text-xs text-[#5B677A]">
+                <p className="text-xs text-muted">
                   {property.location}, {property.neighborhood}
                 </p>
 
-                <div className="flex items-center gap-3 text-xs text-[#5B677A] pt-1">
-                  <span className="font-bold text-[#0F172A]">
+                <div className="flex items-center gap-3 text-xs text-muted pt-1">
+                  <span className="font-bold text-main">
                     {formatPrice(property.price)}
                   </span>
-                  <span>•</span>
+                  <span>Ã¢â‚¬Â¢</span>
                   <span>{property.bedrooms} Beds</span>
-                  <span>•</span>
+                  <span>Ã¢â‚¬Â¢</span>
                   <span>{property.bathrooms} Baths</span>
-                  <span>•</span>
-                  <span>{formatCare(property.care)} m²</span>
+                  <span>Ã¢â‚¬Â¢</span>
+                  <span>{formatCare(property.care)} mÃ‚Â²</span>
                 </div>
               </div>
             </div>
 
             {/* Management Actions */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-t-0 border-[#F0ECE3]">
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-t-0 border-border-subtle">
               {/* Status Switcher Dropdown */}
               <div className="flex items-center gap-1.5 text-xs">
                 <label
                   htmlFor={`status-select-${property.id}`}
-                  className="text-[#5B677A] text-[11px]"
+                  className="text-muted text-[11px]"
                 >
                   Status:
                 </label>
@@ -176,7 +177,7 @@ export default function MyListings({
                       e.target.value as PropertyStatus
                     )
                   }
-                  className="bg-[#FDFBF7] border border-[#E6E0D5] rounded px-2 py-1 text-xs font-medium text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
+                  className="bg-ivory border border-border rounded px-2 py-1 text-xs font-medium text-main focus:outline-none focus:ring-1 focus:ring-[#C5A880]"
                 >
                   <option value="available">Available</option>
                   <option value="pending">Under Review / Pending</option>
@@ -187,7 +188,7 @@ export default function MyListings({
               {/* View details */}
               <Link
                 href={`/properties/${property.id}`}
-                className="p-1.5 rounded border border-[#E6E0D5] text-[#5B677A] hover:text-[#0F172A] hover:bg-[#FDFBF7]"
+                className="p-1.5 rounded border border-border text-muted hover:text-main hover:bg-ivory"
                 title="View live page"
               >
                 <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
@@ -198,7 +199,7 @@ export default function MyListings({
                 type="button"
                 onClick={() => handleDelete(property.id)}
                 disabled={busyId === property.id}
-                className="p-1.5 rounded border border-[#E6E0D5] text-[#5B677A] hover:text-[#9E2A2B] hover:border-[#9E2A2B]/40 hover:bg-[#FDF2F2] transition-colors cursor-pointer"
+                className="p-1.5 rounded border border-border text-muted hover:text-error hover:border-[#9E2A2B]/40 hover:bg-error-bg transition-colors cursor-pointer"
                 title="Delete listing"
               >
                 <Trash2 className="w-4 h-4" aria-hidden="true" />

@@ -6,10 +6,10 @@ type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
 };
 
 const variants = {
-  gold: "bg-[#F7F3EC] text-[#8C6E43] border-[#C5A880]/40",
+  gold: "bg-gold-light text-gold-strong border-[#C5A880]/40",
   navy: "bg-[#0F172A] text-white border-[#1E293B]",
-  success: "bg-[#EDF7F2] text-[#1B6348] border-[#1B6348]/20",
-  neutral: "bg-slate-100 text-slate-600 border-slate-200",
+  success: "bg-success-bg text-success border-[#1B6348]/20",
+  neutral: "bg-surface-subtle text-muted border-border",
 };
 
 const sizes = {

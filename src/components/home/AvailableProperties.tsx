@@ -13,19 +13,19 @@ export default async function AvailableProperties() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#A87900]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-strong">
               Make room for what matters
             </p>
-            <h2 className="text-3xl font-bold tracking-tight text-[#17191F]">
+            <h2 className="text-3xl font-bold tracking-tight text-main">
               Available homes.
             </h2>
-            <p className="max-w-xl text-sm text-[#5B677A]">
+            <p className="max-w-xl text-sm text-muted">
               Find a home that fits your life in Addis Ababa.
             </p>
           </div>
           <Link
             href="/listings"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#8C6E43] hover:text-[#17191F]"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gold-strong hover:text-main"
           >
             View all properties
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -42,7 +42,7 @@ export default async function AvailableProperties() {
             ))}
           </div>
         ) : (
-          <p className="rounded-xl border border-[#E9E6DF] bg-white p-6 text-sm text-[#5B677A]">
+          <p className="rounded-xl border border-border-subtle bg-surface p-6 text-sm text-muted">
             No homes are available right now. Please check back soon.
           </p>
         )}

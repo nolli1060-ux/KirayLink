@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, ShieldAlert, ArrowRight } from "lucide-react";
-import { signInAction } from "@/lib/auth";
+import { authClient } from "@/lib/auth/client";
+import type { SessionUser } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -30,24 +31,45 @@ export default function SignInForm() {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.set("email", email);
-      formData.set("password", password);
-      if (returnUrl) formData.set("returnUrl", returnUrl);
+      const { error } = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
 
-      const result = await signInAction(null, formData);
-
-      if (!result.success) {
-        setErrorMessage(
-          result.error || "Authentication failed. Please verify credentials."
-        );
-        setIsLoading(false);
-      } else if (result.redirectUrl) {
-        router.push(result.redirectUrl);
-        router.refresh();
+      if (error) {
+        setErrorMessage(error.message || "Authentication failed. Please verify credentials.");
+        return;
       }
+
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("Could not load your account profile.");
+      }
+
+      const { user } = (await response.json()) as { user: SessionUser | null };
+      if (!user) {
+        setErrorMessage("Your account profile is not available. Please contact support.");
+        return;
+      }
+
+      const safeReturnUrl =
+        returnUrl.startsWith("/") &&
+        !returnUrl.startsWith("//") &&
+        !returnUrl.includes("\\")
+          ? returnUrl
+          : "";
+      const destination =
+        safeReturnUrl ||
+        (user.role === "landlord"
+            ? "/landlord/dashboard"
+            : user.role === "admin"
+              ? "/admin/dashboard"
+              : "/tenant/dashboard");
+      router.push(destination);
+      router.refresh();
     } catch {
       setErrorMessage("An unexpected network error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -58,7 +80,7 @@ export default function SignInForm() {
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="p-3.5 rounded bg-error-bg border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-error"
           >
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{errorMessage}</span>
@@ -82,7 +104,7 @@ export default function SignInForm() {
           type="password"
           name="password"
           autoComplete="current-password"
-          placeholder="••••••••"
+          placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           icon={<Lock className="w-4 h-4" aria-hidden="true" />}
@@ -91,7 +113,7 @@ export default function SignInForm() {
 
         <Button
           type="submit"
-          variant="secondary"
+          variant="primary"
           size="md"
           className="w-full mt-2"
           isLoading={isLoading}
@@ -101,11 +123,11 @@ export default function SignInForm() {
         </Button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#5B677A]">
+      <div className="text-center pt-2 text-xs text-muted">
         Do not have an account yet?{" "}
         <Link
           href="/sign-up"
-          className="font-semibold text-[#8C6E43] hover:text-[#0F172A] underline"
+          className="font-semibold text-gold-strong hover:text-main underline"
         >
           Create an account
         </Link>

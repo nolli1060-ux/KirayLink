@@ -8,8 +8,8 @@ interface PropertyListProps {
 export default function PropertyList({ properties }: PropertyListProps) {
   if (properties.length === 0) {
     return (
-      <div className="p-8 text-center bg-white border border-[#E6E0D5] rounded-lg">
-        <p className="text-sm text-[#5B677A]">No properties found.</p>
+      <div className="p-8 text-center bg-surface border border-border rounded-lg">
+        <p className="text-sm text-muted">No properties found.</p>
       </div>
     );
   }

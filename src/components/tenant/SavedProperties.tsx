@@ -47,14 +47,14 @@ export default function SavedProperties({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[#5B677A] pb-2 border-b border-[#E6E0D5]">
+      <div className="flex items-center justify-between text-xs text-muted pb-2 border-b border-border">
         <span>
-          You have <strong className="text-[#0F172A]">{properties.length}</strong> saved{" "}
+          You have <strong className="text-main">{properties.length}</strong> saved{" "}
           {properties.length === 1 ? "residence" : "residences"}
         </span>
         <Link
           href="/listings"
-          className="text-[#8C6E43] font-semibold hover:underline"
+          className="text-gold-strong font-semibold hover:underline"
         >
           Add more properties
         </Link>
@@ -64,13 +64,14 @@ export default function SavedProperties({
         {properties.map((property) => (
           <article
             key={property.id}
-            className="bg-white rounded-lg border border-[#E6E0D5] overflow-hidden flex flex-col justify-between hover:border-[#C5A880] transition-colors shadow-sm"
+            className="bg-surface rounded-lg border border-border overflow-hidden flex flex-col justify-between hover:border-[#C5A880] transition-colors shadow-sm"
           >
-            <div className="relative aspect-[16/9] w-full bg-slate-100">
+            <div className="relative aspect-[16/9] w-full bg-surface-subtle">
               <Image
                 src={property.imageUrl}
                 alt={property.title}
                 fill
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
               />
@@ -90,37 +91,37 @@ export default function SavedProperties({
             <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-baseline justify-between mb-1">
-                  <span className="text-lg font-bold text-[#0F172A]">
+                  <span className="text-lg font-bold text-main">
                     {formatPrice(property.price)}
                   </span>
-                  <span className="text-[11px] text-[#5B677A]">
+                  <span className="text-[11px] text-muted">
                     {property.neighborhood}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-[#0F172A] line-clamp-1">
+                <h3 className="text-sm font-bold text-main line-clamp-1">
                   {property.title}
                 </h3>
-                <p className="text-xs text-[#5B677A] truncate mt-1">
+                <p className="text-xs text-muted truncate mt-1">
                   {property.location}
                 </p>
 
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#F0ECE3] text-xs text-[#5B677A]">
+                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border-subtle text-xs text-muted">
                   <span className="flex items-center gap-1">
-                    <Bed className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                    <Bed className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                     {property.bedrooms} Beds
                   </span>
                   <span className="flex items-center gap-1">
-                    <Bath className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
+                    <Bath className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
                     {property.bathrooms} Baths
                   </span>
                   <span className="flex items-center gap-1">
-                    <Maximize2 className="w-3.5 h-3.5 text-[#8C6E43]" aria-hidden="true" />
-                    {formatCare(property.care)} m²
+                    <Maximize2 className="w-3.5 h-3.5 text-gold-strong" aria-hidden="true" />
+                    {formatCare(property.care)} mÃ‚Â²
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-[#F0ECE3]">
+              <div className="flex items-center gap-2 pt-2 border-t border-border-subtle">
                 <Button
                   href={`/properties/${property.id}`}
                   variant="outline"
@@ -135,7 +136,7 @@ export default function SavedProperties({
                   type="button"
                   onClick={() => handleRemove(property.id)}
                   disabled={removingId === property.id}
-                  className="p-2 rounded border border-[#E6E0D5] text-[#5B677A] hover:text-[#9E2A2B] hover:border-[#9E2A2B]/40 hover:bg-[#FDF2F2] transition-colors cursor-pointer text-xs"
+                  className="p-2 rounded border border-border text-muted hover:text-error hover:border-[#9E2A2B]/40 hover:bg-error-bg transition-colors cursor-pointer text-xs"
                   title="Remove from saved properties"
                   aria-label={`Remove ${property.title} from saved`}
                 >

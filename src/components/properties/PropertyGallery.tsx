@@ -18,11 +18,12 @@ export default function PropertyGallery({
   return (
     <div className="space-y-3">
       {/* Primary Main Image */}
-      <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-100 border border-[#E6E0D5]">
+      <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-surface-subtle border border-border">
         <Image
           src={displayImages[activeIdx]}
           alt={`${title} - View ${activeIdx + 1}`}
           fill
+          unoptimized
           priority
           sizes="(max-width: 1200px) 100vw, 800px"
           className="object-cover transition-opacity duration-300"
@@ -53,6 +54,7 @@ export default function PropertyGallery({
                   src={img}
                   alt={`Thumbnail ${idx + 1}`}
                   fill
+                  unoptimized
                   sizes="200px"
                   className="object-cover"
                 />

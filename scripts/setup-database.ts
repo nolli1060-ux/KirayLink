@@ -47,7 +47,7 @@ async function main() {
         name: user.name,
         email: user.email,
         emailNormalized: user.email.toLowerCase().trim(),
-        passwordHash: user.passwordHash,
+        passwordHash: null,
         role: user.role,
         phone: user.phone,
         company: user.company,
