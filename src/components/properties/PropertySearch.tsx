@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import Button from "@/components/ui/Button";
 
 interface PropertySearchProps {
   initialQuery?: string;
@@ -12,7 +11,7 @@ interface PropertySearchProps {
 
 export default function PropertySearch({
   initialQuery = "",
-  placeholder = "Search by neighborhood, city, or residence type...",
+  placeholder = "Search by district, neighborhood, or residence type...",
 }: PropertySearchProps) {
   const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
@@ -30,14 +29,14 @@ export default function PropertySearch({
     <form
       role="search"
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 w-full max-w-xl"
+      className="flex w-full flex-col gap-2 sm:flex-row sm:items-center"
     >
-      <div className="relative flex-1">
+      <div className="relative min-w-0 flex-1">
         <label htmlFor="property-search-input" className="sr-only">
           Search properties
         </label>
         <Search
-          className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C6A56B]"
           aria-hidden="true"
         />
         <input
@@ -47,12 +46,16 @@ export default function PropertySearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-[#E6E0D5] rounded text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
+          className="min-h-12 w-full rounded-xl border border-[#EDE8DE] bg-white px-4 pl-11 text-sm text-[#242622] placeholder:text-[#77766F] focus:border-[#C6A56B] focus:outline-none focus:ring-2 focus:ring-[#C6A56B]/25 sm:rounded-full transition-all"
         />
       </div>
-      <Button type="submit" variant="primary" size="md">
-        Search
-      </Button>
+      <button
+        type="submit"
+        className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#C6A56B] px-8 text-sm font-bold text-[#123B32] shadow-sm transition-all hover:bg-[#D8BD8E] active:scale-98 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C6A56B] cursor-pointer sm:rounded-full"
+      >
+        <span>Search</span>
+        <Search className="h-4 w-4" aria-hidden="true" />
+      </button>
     </form>
   );
 }

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { CheckCircle2, Send, ShieldCheck, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle2, Send, ShieldCheck, Clock, Loader2 } from "lucide-react";
 import type { PropertyLandlord } from "@/types/property";
-import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { submitInquiryAction } from "@/lib/dashboard-actions";
 
@@ -23,12 +22,31 @@ export default function PropertyInquiryForm({
   const [phone, setPhone] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
   const [message, setMessage] = useState(
-    `Hello, I am interested in leasing ${propertyTitle} (Ref: ${propertyId}). Please let me know when it is possible to arrange a private viewing.`
+    `Hello, I am interested in leasing ${propertyTitle}. Please let me know when it is possible to arrange a private viewing.`
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    async function loadUserData() {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setName(data.user.name || "");
+            setEmail(data.user.email || "");
+            if (data.user.phone) setPhone(data.user.phone);
+          }
+        }
+      } catch {
+        // Ignore session prefill failure
+      }
+    }
+    loadUserData();
+  }, []);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -73,20 +91,19 @@ export default function PropertyInquiryForm({
 
   if (isSubmitted) {
     return (
-      <div className="bg-white border border-[#1B6348]/30 rounded-lg p-6 space-y-4 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#EDF7F2] text-[#1B6348] mx-auto flex items-center justify-center">
+      <div className="bg-white border border-[#174A3D]/30 rounded-2xl p-7 space-y-4 text-center shadow-xs">
+        <div className="w-12 h-12 rounded-full bg-[#EAF3F0] text-[#174A3D] mx-auto flex items-center justify-center shadow-xs">
           <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
         </div>
-        <h3 className="text-lg font-bold text-[#0F172A]">
+        <h3 className="text-xl font-bold text-[#123B32] font-serif">
           Inquiry Successfully Sent
         </h3>
-        <p className="text-xs text-[#5B677A] leading-relaxed">
-          Your request regarding <strong>{propertyTitle}</strong> has been
-          forwarded to <strong>{landlord.name}</strong>.
+        <p className="text-xs text-[#77766F] leading-relaxed">
+          Your inquiry regarding <strong>{propertyTitle}</strong> has been forwarded directly to <strong>{landlord.name}</strong>.
         </p>
-        <div className="p-3 rounded bg-[#FDFBF7] border border-[#E6E0D5] text-xs text-[#5B677A] flex items-center justify-center gap-2">
-          <Clock className="w-4 h-4 text-[#8C6E43]" aria-hidden="true" />
-          <span>Typical response time: {landlord.responseTime}</span>
+        <div className="p-3.5 rounded-xl bg-[#F8F6F0] border border-[#EDE8DE] text-xs text-[#77766F] flex items-center justify-center gap-2">
+          <Clock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
+          <span>Expected response: <strong className="text-[#123B32]">{landlord.responseTime || "within 24 hours"}</strong></span>
         </div>
         <button
           type="button"
@@ -94,7 +111,7 @@ export default function PropertyInquiryForm({
             setIsSubmitted(false);
             setMessage("");
           }}
-          className="text-xs text-[#8C6E43] font-semibold underline hover:text-[#0F172A] cursor-pointer"
+          className="text-xs text-[#C6A56B] font-bold underline hover:text-[#123B32] transition-colors cursor-pointer"
         >
           Send another inquiry
         </button>
@@ -103,93 +120,111 @@ export default function PropertyInquiryForm({
   }
 
   return (
-    <div className="bg-white border border-[#E6E0D5] rounded-lg p-6 space-y-5 shadow-sm">
-      <div className="border-b border-[#F0ECE3] pb-4 space-y-1">
-        <h3 className="text-base font-bold text-[#0F172A]">
-          Inquire About This Residence
-        </h3>
-        <p className="text-xs text-[#5B677A]">
-          Direct contact with verified manager:{" "}
-          <strong className="text-[#0F172A]">{landlord.name}</strong>
-        </p>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {errors.form && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-xl bg-[#FBEFEF] border border-[#8B2627]/30 text-xs text-[#8B2627]"
+        >
+          {errors.form}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-3.5">
-        <Input
-          label="Your Full Name"
-          placeholder="e.g. Samuel Kebede"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          error={errors.name}
-          disabled={isSubmitting}
-        />
+      <Input
+        label="Your Full Name *"
+        name="name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="e.g. Alazar Mengistu"
+        error={errors.name}
+        disabled={isSubmitting}
+        required
+      />
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
-          label="Email Address"
+          label="Email Address *"
           type="email"
-          placeholder="e.g. samuel@example.com"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="alazar@example.com"
           error={errors.email}
           disabled={isSubmitting}
+          required
         />
 
         <Input
-          label="Phone Number"
+          label="Phone Number *"
           type="tel"
-          placeholder="e.g. +251 91 123 4567"
+          name="phone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          placeholder="+251 91 234 5678"
           error={errors.phone}
           disabled={isSubmitting}
+          required
         />
-
-        <Input
-          label="Target Move-In Date (Optional)"
-          type="date"
-          value={moveInDate}
-          onChange={(e) => setMoveInDate(e.target.value)}
-          disabled={isSubmitting}
-        />
-
-        <div className="space-y-1.5">
-          <label
-            htmlFor="inquiry-message"
-            className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] block"
-          >
-            Message to Landlord
-          </label>
-          <textarea
-            id="inquiry-message"
-            rows={4}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            disabled={isSubmitting}
-            className="w-full bg-white border border-[#E6E0D5] rounded px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#C5A880]"
-          />
-          {errors.message && (
-            <p className="text-xs text-[#9E2A2B] font-medium" role="alert">
-              {errors.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          variant="primary"
-          size="md"
-          className="w-full mt-2"
-          isLoading={isSubmitting}
-        >
-          <Send className="w-4 h-4 mr-2" aria-hidden="true" />
-          <span>Submit Direct Inquiry</span>
-        </Button>
-      </form>
-
-      <div className="pt-3 border-t border-[#F0ECE3] flex items-center justify-center gap-2 text-[11px] text-[#5B677A]">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#1B6348]" aria-hidden="true" />
-        <span>Verified Identity & Encrypted Messaging</span>
       </div>
-    </div>
+
+      <Input
+        label="Desired Move-in Date"
+        type="date"
+        name="moveInDate"
+        value={moveInDate}
+        onChange={(e) => setMoveInDate(e.target.value)}
+        disabled={isSubmitting}
+        helperText="Optional target occupancy date."
+      />
+
+      <div className="space-y-1.5">
+        <label
+          htmlFor="inquiry-message"
+          className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+        >
+          Message to Landlord *
+        </label>
+        <textarea
+          id="inquiry-message"
+          name="message"
+          rows={3}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Ask about viewing availability, lease terms, or deposit requirements..."
+          disabled={isSubmitting}
+          className={`w-full text-xs text-[#242622] bg-[#F8F6F0] border rounded-xl p-3.5 focus:outline-none focus:border-[#C6A56B] focus:ring-2 focus:ring-[#C6A56B]/25 transition-all resize-y ${
+            errors.message ? "border-[#8B2627]" : "border-[#EDE8DE]"
+          }`}
+        />
+        {errors.message && (
+          <p role="alert" className="text-xs text-[#8B2627]">
+            {errors.message}
+          </p>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#123B32] py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#174A3D] transition-all shadow-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin text-[#C6A56B]" aria-hidden="true" />
+            <span>Transmitting Inquiry...</span>
+          </>
+        ) : (
+          <>
+            <Send className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
+            <span>Send Direct Inquiry</span>
+          </>
+        )}
+      </button>
+
+      <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#77766F] pt-1">
+        <ShieldCheck className="w-3.5 h-3.5 text-[#174A3D]" aria-hidden="true" />
+        <span>Direct inquiry delivered to verified landlord: {landlord.name}</span>
+      </div>
+    </form>
   );
 }

@@ -4,9 +4,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import fs from "fs";
-import path from "path";
+import { eq } from "drizzle-orm";
 import type { User, SessionUser, UserRole } from "@/types/user";
+import { getDatabase } from "@/lib/db";
+import { users } from "@/lib/schema";
 
 const COOKIE_NAME = "kiraylink_session";
 const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
@@ -19,36 +20,49 @@ function getSecretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-// User file storage path
-const usersFilePath = path.join(process.cwd(), "src", "data", "users.json");
-
-// Read all users from persistent JSON file
-export async function getUsers(): Promise<User[]> {
-  try {
-    if (fs.existsSync(usersFilePath)) {
-      const data = fs.readFileSync(usersFilePath, "utf8");
-      return JSON.parse(data) as User[];
-    }
-  } catch (err) {
-    console.error("Failed to read users file:", err);
-  }
-  return [];
+export async function getUserRoles(): Promise<UserRole[]> {
+  const rows = await getDatabase().select({ role: users.role }).from(users);
+  return rows.map((row) => row.role);
 }
 
-// Save users to persistent JSON file
-async function saveUsers(users: User[]): Promise<void> {
-  try {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), "utf8");
-  } catch (err) {
-    console.error("Failed to save users file:", err);
-    throw new Error("Unable to save user data.");
-  }
-}
-
-// Find user by email
 export async function findUserByEmail(email: string): Promise<User | undefined> {
-  const users = await getUsers();
-  return users.find((u) => u.email.toLowerCase() === email.toLowerCase().trim());
+  const rows = await getDatabase()
+    .select()
+    .from(users)
+    .where(eq(users.emailNormalized, email.toLowerCase().trim()))
+    .limit(1);
+  const user = rows[0];
+  if (!user) return undefined;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    role: user.role,
+    phone: user.phone ?? undefined,
+    company: user.company ?? undefined,
+    createdAt: user.createdAt,
+  };
+}
+
+export async function findUserById(id: string): Promise<User | undefined> {
+  const rows = await getDatabase()
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  const user = rows[0];
+  if (!user) return undefined;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    role: user.role,
+    phone: user.phone ?? undefined,
+    company: user.company ?? undefined,
+    createdAt: user.createdAt,
+  };
 }
 
 // Create and sign a secure session JWT using jose (maintained standard)
@@ -59,6 +73,7 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
     name: user.name,
     email: user.email,
     role: user.role,
+    phone: user.phone,
     company: user.company,
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -97,6 +112,7 @@ export async function getSession(): Promise<SessionUser | null> {
       name: payload.name as string,
       email: payload.email as string,
       role: payload.role as UserRole,
+      phone: payload.phone as string | undefined,
       company: payload.company as string | undefined,
     };
   } catch {
@@ -133,14 +149,18 @@ export async function signInAction(
     name: user.name,
     email: user.email,
     role: user.role,
+    phone: user.phone,
     company: user.company,
   };
 
   const token = await createSessionToken(sessionUser);
   await setSessionCookie(token);
 
-  // Safe redirect destination
-  let destination = returnUrl && returnUrl.startsWith("/") ? returnUrl : "";
+  // Safe redirect destination (prevent protocol-relative URL open redirect)
+  let destination =
+    returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
+      ? returnUrl
+      : "";
   if (!destination) {
     if (user.role === "landlord") destination = "/landlord/dashboard";
     else if (user.role === "admin") destination = "/admin/dashboard";
@@ -197,9 +217,28 @@ export async function signUpAction(
     createdAt: new Date().toISOString(),
   };
 
-  const users = await getUsers();
-  users.push(newUser);
-  await saveUsers(users);
+  const insertedUsers = await getDatabase()
+    .insert(users)
+    .values({
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      emailNormalized: newUser.email.toLowerCase().trim(),
+      passwordHash: newUser.passwordHash,
+      role: newUser.role,
+      phone: newUser.phone,
+      company: newUser.company,
+      createdAt: newUser.createdAt,
+    })
+    .onConflictDoNothing()
+    .returning({ id: users.id });
+
+  if (insertedUsers.length === 0) {
+    return {
+      success: false,
+      error: "An account with this email address already exists.",
+    };
+  }
 
   // Create session and log in immediately
   const sessionUser: SessionUser = {
@@ -207,6 +246,7 @@ export async function signUpAction(
     name: newUser.name,
     email: newUser.email,
     role: newUser.role,
+    phone: newUser.phone,
     company: newUser.company,
   };
 
@@ -217,6 +257,47 @@ export async function signUpAction(
     role === "landlord" ? "/landlord/dashboard" : "/tenant/dashboard";
 
   return { success: true, redirectUrl: destination };
+}
+
+// Server Action: Update Profile
+export async function updateUserProfileAction(
+  prevState: { success: boolean; error?: string; message?: string } | null,
+  formData: FormData
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  const session = await getSession();
+  if (!session) {
+    return { success: false, error: "Please sign in to update your profile." };
+  }
+
+  const name = (formData.get("name") as string)?.trim() || "";
+  const phone = (formData.get("phone") as string)?.trim() || undefined;
+  const company = (formData.get("company") as string)?.trim() || undefined;
+
+  if (!name || name.length < 2) {
+    return { success: false, error: "Name must be at least 2 characters long." };
+  }
+
+  await getDatabase()
+    .update(users)
+    .set({
+      name,
+      phone: phone || null,
+      company: company || null,
+    })
+    .where(eq(users.id, session.id));
+
+  // Refresh active session token with updated profile information
+  const updatedSessionUser: SessionUser = {
+    ...session,
+    name,
+    phone,
+    company,
+  };
+
+  const token = await createSessionToken(updatedSessionUser);
+  await setSessionCookie(token);
+
+  return { success: true, message: "Profile updated successfully." };
 }
 
 // Server Action: Sign Out

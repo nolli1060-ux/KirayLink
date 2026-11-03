@@ -58,7 +58,7 @@ export default function SignInForm() {
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="p-3.5 rounded-xl bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
           >
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
             <span>{errorMessage}</span>
@@ -73,7 +73,7 @@ export default function SignInForm() {
           placeholder="e.g. resident@kiraylink.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          icon={<Mail className="w-4 h-4" aria-hidden="true" />}
+          icon={<Mail className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
           disabled={isLoading}
         />
 
@@ -85,15 +85,15 @@ export default function SignInForm() {
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          icon={<Lock className="w-4 h-4" aria-hidden="true" />}
+          icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
           disabled={isLoading}
         />
 
         <Button
           type="submit"
-          variant="primary"
+          variant="secondary"
           size="md"
-          className="w-full mt-2"
+          className="w-full mt-2 rounded-full cursor-pointer"
           isLoading={isLoading}
         >
           <span>Sign In to Account</span>
@@ -101,11 +101,11 @@ export default function SignInForm() {
         </Button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#5B677A]">
+      <div className="text-center pt-2 text-xs text-[#77766F]">
         Do not have an account yet?{" "}
         <Link
           href="/sign-up"
-          className="font-semibold text-[#8C6E43] hover:text-[#0F172A] underline"
+          className="font-semibold text-[#123B32] hover:text-[#C6A56B] underline transition-colors"
         >
           Create an account
         </Link>

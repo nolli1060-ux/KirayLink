@@ -12,22 +12,22 @@ export const metadata: Metadata = {
 export default function SignUpPage() {
   return (
     <div className="py-16 max-w-xl mx-auto px-4 sm:px-6">
-      <div className="bg-white border border-[#E6E0D5] rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="bg-white border border-[#EDE8DE] rounded-3xl p-6 sm:p-9 shadow-[0_24px_80px_-32px_rgba(18,59,50,0.12)] space-y-6">
         <div className="space-y-2 text-center">
-          <Badge variant="gold" size="sm">
+          <Badge variant="gold" size="sm" className="rounded-full px-3 py-1">
             KirayLink Membership
           </Badge>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#242622] tracking-tight">
             Create an Account
           </h1>
-          <p className="text-xs sm:text-sm text-[#5B677A]">
-            Join KirayLink as a tenant or property owner.
+          <p className="text-xs sm:text-sm text-[#77766F] font-sans">
+            Join KirayLink as a prospective tenant or property landlord.
           </p>
         </div>
 
         <Suspense
           fallback={
-            <div className="py-8 text-center text-xs text-[#5B677A]">
+            <div className="py-8 text-center text-xs text-[#77766F]">
               Loading registration form...
             </div>
           }

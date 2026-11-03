@@ -97,7 +97,6 @@ export default function ListingManagement({
     ) {
       return;
     }
-
     setBusyId(propertyId);
     setActionFeedback(null);
     try {
@@ -106,12 +105,12 @@ export default function ListingManagement({
         setProperties((prev) => prev.filter((p) => p.id !== propertyId));
         setActionFeedback({
           type: "success",
-          message: `Listing "${title}" removed from KirayLink.`,
+          message: `Property "${title}" permanently removed.`,
         });
       } else {
         setActionFeedback({
           type: "error",
-          message: res.error || "Failed to delete listing.",
+          message: res.error || "Failed to remove listing.",
         });
       }
     } catch (err) {
@@ -143,63 +142,63 @@ export default function ListingManagement({
     <div className="space-y-8">
       {/* Platform Analytics Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#E6E0D5] rounded-xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-[#8C6E43] mb-2">
+        <div className="bg-white border border-[#EDE8DE] rounded-2xl p-5 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]">
+          <div className="flex items-center justify-between text-[#C6A56B] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">
               Total Listings
             </span>
-            <Building2 className="w-5 h-5 text-[#8C6E43]" aria-hidden="true" />
+            <Building2 className="w-5 h-5 text-[#C6A56B]" aria-hidden="true" />
           </div>
-          <div className="text-2xl font-bold text-[#0F172A]">
+          <div className="text-2xl font-serif font-bold text-[#242622]">
             {properties.length}
           </div>
-          <p className="text-[11px] text-[#5B677A] mt-1">
+          <p className="text-[11px] text-[#77766F] mt-1">
             {properties.filter((p) => p.status === "available").length} active ·{" "}
             {properties.filter((p) => p.status === "rented").length} leased
           </p>
         </div>
 
-        <div className="bg-white border border-[#E6E0D5] rounded-xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-[#1B6348] mb-2">
+        <div className="bg-white border border-[#EDE8DE] rounded-2xl p-5 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]">
+          <div className="flex items-center justify-between text-[#174A3D] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">
               Active Leases
             </span>
-            <ShieldCheck className="w-5 h-5 text-[#1B6348]" aria-hidden="true" />
+            <ShieldCheck className="w-5 h-5 text-[#174A3D]" aria-hidden="true" />
           </div>
-          <div className="text-2xl font-bold text-[#0F172A]">
+          <div className="text-2xl font-serif font-bold text-[#242622]">
             {properties.filter((p) => p.status === "available").length}
           </div>
-          <p className="text-[11px] text-[#5B677A] mt-1">
+          <p className="text-[11px] text-[#77766F] mt-1">
             Visible to potential tenants
           </p>
         </div>
 
-        <div className="bg-white border border-[#E6E0D5] rounded-xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-[#8C6E43] mb-2">
+        <div className="bg-white border border-[#EDE8DE] rounded-2xl p-5 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]">
+          <div className="flex items-center justify-between text-[#C6A56B] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">
               Tenant Inquiries
             </span>
-            <MessageSquare className="w-5 h-5 text-[#8C6E43]" aria-hidden="true" />
+            <MessageSquare className="w-5 h-5 text-[#C6A56B]" aria-hidden="true" />
           </div>
-          <div className="text-2xl font-bold text-[#0F172A]">
+          <div className="text-2xl font-serif font-bold text-[#242622]">
             {stats.totalInquiries}
           </div>
-          <p className="text-[11px] text-[#5B677A] mt-1">
+          <p className="text-[11px] text-[#77766F] mt-1">
             {stats.pendingInquiries} awaiting response
           </p>
         </div>
 
-        <div className="bg-white border border-[#E6E0D5] rounded-xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-[#0F172A] mb-2">
+        <div className="bg-white border border-[#EDE8DE] rounded-2xl p-5 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]">
+          <div className="flex items-center justify-between text-[#123B32] mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">
               Platform Users
             </span>
-            <Users className="w-5 h-5 text-[#0F172A]" aria-hidden="true" />
+            <Users className="w-5 h-5 text-[#123B32]" aria-hidden="true" />
           </div>
-          <div className="text-2xl font-bold text-[#0F172A]">
+          <div className="text-2xl font-serif font-bold text-[#242622]">
             {stats.totalUsers}
           </div>
-          <p className="text-[11px] text-[#5B677A] mt-1">
+          <p className="text-[11px] text-[#77766F] mt-1">
             {stats.tenantCount} tenants · {stats.landlordCount} landlords
           </p>
         </div>
@@ -209,9 +208,9 @@ export default function ListingManagement({
       {actionFeedback && (
         <div
           role="status"
-          className={`flex items-center justify-between gap-3 p-4 rounded-lg border text-xs ${
+          className={`flex items-center justify-between gap-3 p-4 rounded-xl border text-xs ${
             actionFeedback.type === "success"
-              ? "bg-[#EDF7F2] border-[#1B6348]/30 text-[#1B6348]"
+              ? "bg-[#EAF3F0] border-[#174A3D]/30 text-[#174A3D]"
               : "bg-[#FBEAE9] border-[#A63228]/30 text-[#A63228]"
           }`}
         >
@@ -234,33 +233,33 @@ export default function ListingManagement({
       )}
 
       {/* Management Table Controls */}
-      <div className="bg-white border border-[#E6E0D5] rounded-xl shadow-xs overflow-hidden">
-        <div className="p-5 border-b border-[#E6E0D5] bg-[#FDFBF7] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-[#EDE8DE] rounded-2xl shadow-xs overflow-hidden">
+        <div className="p-5 sm:p-6 border-b border-[#EDE8DE] bg-[#F8F6F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-[#0F172A]">
+            <h2 className="text-lg font-serif font-bold text-[#242622]">
               Property Listing Moderation
             </h2>
-            <p className="text-xs text-[#5B677A] mt-0.5">
+            <p className="text-xs text-[#77766F] mt-0.5">
               Review, update availability status, or moderate residences across all platform landlords.
             </p>
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#5B677A]">Total verified listings:</span>
-            <span className="font-bold text-[#0F172A]">{properties.length}</span>
+            <span className="text-[#77766F]">Total verified listings:</span>
+            <span className="font-bold text-[#242622]">{properties.length}</span>
           </div>
         </div>
 
         {/* Filter bar */}
-        <div className="p-4 border-b border-[#E6E0D5] flex flex-col sm:flex-row gap-3 bg-white">
+        <div className="p-4 border-b border-[#EDE8DE] flex flex-col sm:flex-row gap-3 bg-white">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-[#5B677A]" aria-hidden="true" />
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#77766F]" aria-hidden="true" />
             <input
               type="text"
               placeholder="Search by title, neighborhood, or landlord..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs bg-[#FDFBF7] border border-[#CBD5E1] rounded-md text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#C5A880] focus:border-[#C5A880]"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[#F8F6F0] border border-[#EDE8DE] rounded-full text-[#242622] focus:outline-none focus:ring-2 focus:ring-[#C6A56B] placeholder:text-[#77766F]/60"
             />
           </div>
 
@@ -270,10 +269,10 @@ export default function ListingManagement({
                 key={status}
                 type="button"
                 onClick={() => setStatusFilter(status)}
-                className={`px-3 py-2 rounded-md text-xs font-semibold capitalize transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors whitespace-nowrap cursor-pointer ${
                   statusFilter === status
-                    ? "bg-[#0F172A] text-white"
-                    : "bg-[#F7F3EC] text-[#5B677A] hover:text-[#0F172A]"
+                    ? "bg-[#123B32] text-white"
+                    : "bg-[#F8F6F0] text-[#77766F] hover:text-[#123B32] border border-[#EDE8DE]"
                 }`}
               >
                 {status}
@@ -285,18 +284,19 @@ export default function ListingManagement({
         {/* Listing Records Table */}
         {filteredProperties.length === 0 ? (
           <div className="text-center py-16 px-4 space-y-3">
-            <div className="w-10 h-10 rounded-full bg-[#F7F3EC] text-[#8C6E43] mx-auto flex items-center justify-center">
-              <Filter className="w-5 h-5" aria-hidden="true" />
+            <div className="w-12 h-12 rounded-full bg-[#F8F6F0] text-[#C6A56B] mx-auto flex items-center justify-center">
+              <Filter className="w-6 h-6 text-[#C6A56B]" aria-hidden="true" />
             </div>
-            <h3 className="text-sm font-bold text-[#0F172A]">
+            <h3 className="text-base font-serif font-bold text-[#242622]">
               No listings match your criteria
             </h3>
-            <p className="text-xs text-[#5B677A] max-w-sm mx-auto">
+            <p className="text-xs text-[#77766F] max-w-sm mx-auto">
               Try adjusting your search terms or clearing the status filter.
             </p>
             <Button
               variant="outline"
               size="sm"
+              className="rounded-full"
               onClick={() => {
                 setSearchQuery("");
                 setStatusFilter("all");
@@ -309,27 +309,27 @@ export default function ListingManagement({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#E6E0D5] bg-[#F7F3EC] text-[11px] font-bold uppercase tracking-wider text-[#5B677A]">
-                  <th className="py-3 px-4">Property</th>
-                  <th className="py-3 px-4">Landlord</th>
-                  <th className="py-3 px-4">Monthly Rent</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Moderation Actions</th>
+                <tr className="border-b border-[#EDE8DE] bg-[#F8F6F0] text-[11px] font-bold uppercase tracking-wider text-[#77766F]">
+                  <th className="py-3.5 px-4">Property</th>
+                  <th className="py-3.5 px-4">Landlord</th>
+                  <th className="py-3.5 px-4">Monthly Rent</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4 text-right">Moderation Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E6E0D5] text-xs">
+              <tbody className="divide-y divide-[#EDE8DE] text-xs">
                 {filteredProperties.map((prop) => {
                   const isBusy = busyId === prop.id;
 
                   return (
                     <tr
                       key={prop.id}
-                      className="hover:bg-[#FDFBF7] transition-colors"
+                      className="hover:bg-[#F8F6F0]/60 transition-colors"
                     >
                       {/* Property info */}
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-14 h-11 shrink-0 rounded bg-slate-100 overflow-hidden">
+                          <div className="relative w-14 h-11 shrink-0 rounded-lg bg-[#F8F6F0] border border-[#EDE8DE] overflow-hidden">
                             <Image
                               src={prop.imageUrl}
                               alt={prop.title}
@@ -341,15 +341,15 @@ export default function ListingManagement({
                           <div className="min-w-0">
                             <Link
                               href={`/properties/${prop.id}`}
-                              className="font-bold text-[#0F172A] hover:text-[#8C6E43] transition-colors flex items-center gap-1 group truncate max-w-xs block"
+                              className="font-serif font-semibold text-[#242622] hover:text-[#C6A56B] transition-colors flex items-center gap-1 group truncate max-w-xs block"
                             >
                               <span className="truncate">{prop.title}</span>
                               <ExternalLink
-                                className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                                className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[#C6A56B]"
                                 aria-hidden="true"
                               />
                             </Link>
-                            <p className="text-[11px] text-[#5B677A] mt-0.5 truncate">
+                            <p className="text-[11px] text-[#77766F] mt-0.5 truncate font-sans">
                               {prop.propertyType} · {prop.neighborhood}, {prop.city}
                             </p>
                           </div>
@@ -358,21 +358,21 @@ export default function ListingManagement({
 
                       {/* Landlord info */}
                       <td className="py-4 px-4">
-                        <div className="text-[#0F172A] font-medium">
+                        <div className="text-[#242622] font-semibold">
                           {prop.landlord.name}
                         </div>
-                        <div className="text-[11px] text-[#5B677A] truncate">
+                        <div className="text-[11px] text-[#77766F] truncate">
                           {prop.landlord.email}
                         </div>
                         {prop.landlord.company && (
-                          <div className="text-[10px] text-[#8C6E43] font-medium mt-0.5">
+                          <div className="text-[10px] text-[#C6A56B] font-semibold mt-0.5">
                             {prop.landlord.company}
                           </div>
                         )}
                       </td>
 
                       {/* Price */}
-                      <td className="py-4 px-4 font-bold text-[#0F172A] whitespace-nowrap">
+                      <td className="py-4 px-4 font-serif font-bold text-[#123B32] whitespace-nowrap">
                         {formatPrice(prop.price)}
                       </td>
 
@@ -388,12 +388,12 @@ export default function ListingManagement({
                             )
                           }
                           aria-label={`Change status for ${prop.title}`}
-                          className={`text-xs font-semibold rounded px-2.5 py-1 border transition-colors cursor-pointer ${
+                          className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors cursor-pointer ${
                             prop.status === "available"
-                              ? "bg-[#EDF7F2] text-[#1B6348] border-[#1B6348]/30"
+                              ? "bg-[#EAF3F0] text-[#174A3D] border-[#174A3D]/30"
                               : prop.status === "pending"
-                              ? "bg-slate-100 text-[#0F172A] border-[#CBD5E1]"
-                              : "bg-[#F7F3EC] text-[#5B677A] border-[#CBD5E1]"
+                              ? "bg-[#F5EFE4] text-[#123B32] border-[#C6A56B]/40"
+                              : "bg-[#F8F6F0] text-[#77766F] border-[#EDE8DE]"
                           }`}
                         >
                           <option value="available">available</option>
@@ -407,7 +407,7 @@ export default function ListingManagement({
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/properties/${prop.id}`}
-                            className="p-1.5 rounded text-[#5B677A] hover:text-[#0F172A] hover:bg-slate-100 transition-colors"
+                            className="p-1.5 rounded-full text-[#77766F] hover:text-[#123B32] hover:bg-[#F8F6F0] transition-colors"
                             title="View Public Listing"
                             aria-label={`View ${prop.title} public page`}
                           >
@@ -418,7 +418,7 @@ export default function ListingManagement({
                             type="button"
                             disabled={isBusy}
                             onClick={() => handleDelete(prop.id, prop.title)}
-                            className="p-1.5 rounded text-[#A63228] hover:bg-[#FBEAE9] transition-colors cursor-pointer disabled:opacity-50"
+                            className="p-1.5 rounded-full text-[#A63228] hover:bg-[#FBEAE9] transition-colors cursor-pointer disabled:opacity-50"
                             title="Permanently Delete Listing"
                             aria-label={`Delete ${prop.title}`}
                           >

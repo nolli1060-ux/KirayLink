@@ -1,18 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, Building, Phone, ShieldAlert, ArrowRight } from "lucide-react";
 import { signUpAction } from "@/lib/auth";
 import type { UserRole } from "@/types/user";
-import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlRole = searchParams.get("role");
 
-  const [role, setRole] = useState<UserRole>("tenant");
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const role: UserRole = selectedRole ?? (urlRole === "landlord" ? "landlord" : "tenant");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,6 +38,10 @@ export default function SignUpForm() {
       setErrorMessage("Please enter a valid email address.");
       return;
     }
+    if (!phone.trim()) {
+      setErrorMessage("Please provide a contact phone number.");
+      return;
+    }
     if (password.length < 6) {
       setErrorMessage("Password must be at least 6 characters long.");
       return;
@@ -52,7 +59,7 @@ export default function SignUpForm() {
       formData.set("email", email.trim());
       formData.set("password", password);
       formData.set("role", role);
-      if (phone.trim()) formData.set("phone", phone.trim());
+      formData.set("phone", phone.trim());
       if (company.trim()) formData.set("company", company.trim());
 
       const result = await signUpAction(null, formData);
@@ -74,23 +81,23 @@ export default function SignUpForm() {
     <div className="space-y-6">
       {/* Account Type Selector Tabs */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-[#242622] block">
           Select Account Type
         </label>
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => setRole("tenant")}
-            className={`p-3 rounded border text-left transition-all cursor-pointer ${
+            onClick={() => setSelectedRole("tenant")}
+            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
               role === "tenant"
-                ? "bg-[#0F172A] text-white border-[#0F172A]"
-                : "bg-white text-[#5B677A] border-[#E6E0D5] hover:border-[#C5A880]"
+                ? "bg-[#123B32] text-white border-[#123B32] shadow-sm"
+                : "bg-white text-[#77766F] border-[#EDE8DE] hover:border-[#C6A56B]"
             }`}
           >
             <div className="font-semibold text-xs">Prospective Tenant</div>
             <div
-              className={`text-[11px] ${
-                role === "tenant" ? "text-slate-300" : "text-slate-400"
+              className={`text-[11px] mt-0.5 ${
+                role === "tenant" ? "text-[#EDE8DE]/80" : "text-[#77766F]"
               }`}
             >
               Discover & rent residences
@@ -99,17 +106,17 @@ export default function SignUpForm() {
 
           <button
             type="button"
-            onClick={() => setRole("landlord")}
-            className={`p-3 rounded border text-left transition-all cursor-pointer ${
+            onClick={() => setSelectedRole("landlord")}
+            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
               role === "landlord"
-                ? "bg-[#0F172A] text-white border-[#0F172A]"
-                : "bg-white text-[#5B677A] border-[#E6E0D5] hover:border-[#C5A880]"
+                ? "bg-[#123B32] text-white border-[#123B32] shadow-sm"
+                : "bg-white text-[#77766F] border-[#EDE8DE] hover:border-[#C6A56B]"
             }`}
           >
             <div className="font-semibold text-xs">Property Landlord</div>
             <div
-              className={`text-[11px] ${
-                role === "landlord" ? "text-slate-300" : "text-slate-400"
+              className={`text-[11px] mt-0.5 ${
+                role === "landlord" ? "text-[#EDE8DE]/80" : "text-[#77766F]"
               }`}
             >
               List & manage properties
@@ -118,13 +125,13 @@ export default function SignUpForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="p-3.5 rounded-xl bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
           >
-            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-[#9E2A2B]" aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -135,8 +142,9 @@ export default function SignUpForm() {
           placeholder="e.g. Dawit Haile"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          icon={<User className="w-4 h-4" aria-hidden="true" />}
+          icon={<User className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
           disabled={isLoading}
+          required
         />
 
         <Input
@@ -146,8 +154,9 @@ export default function SignUpForm() {
           placeholder="e.g. dawit@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          icon={<Mail className="w-4 h-4" aria-hidden="true" />}
+          icon={<Mail className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
           disabled={isLoading}
+          required
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -157,20 +166,25 @@ export default function SignUpForm() {
             placeholder="+251 91 123 4567"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            icon={<Phone className="w-4 h-4" aria-hidden="true" />}
+            icon={<Phone className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
             disabled={isLoading}
+            required
+            helperText="Used for tenant-landlord communication."
           />
 
-          {role === "landlord" && (
+          {role === "landlord" ? (
             <Input
-              label="Real Estate / Company"
+              label="Real Estate / Company Name"
               type="text"
               placeholder="e.g. Addis Property Group"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              icon={<Building className="w-4 h-4" aria-hidden="true" />}
+              icon={<Building className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
               disabled={isLoading}
+              helperText="Optional agency branding."
             />
+          ) : (
+            <div className="hidden sm:block" />
           )}
         </div>
 
@@ -182,8 +196,9 @@ export default function SignUpForm() {
             placeholder="Min 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4" aria-hidden="true" />}
+            icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
             disabled={isLoading}
+            required
           />
 
           <Input
@@ -193,28 +208,27 @@ export default function SignUpForm() {
             placeholder="Repeat password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4" aria-hidden="true" />}
+            icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
             disabled={isLoading}
+            required
           />
         </div>
 
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="md"
-          className="w-full mt-2"
-          isLoading={isLoading}
+          disabled={isLoading}
+          className="mt-3 inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-full bg-[#C6A56B] px-6 py-3 text-sm font-semibold text-[#123B32] transition-colors hover:bg-[#d4b57e] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-xs"
         >
-          <span>Complete Registration</span>
-          <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
-        </Button>
+          <span>{isLoading ? "Creating Account..." : "Complete Registration"}</span>
+          <ArrowRight className="w-4 h-4 text-[#123B32]" aria-hidden="true" />
+        </button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#5B677A]">
+      <div className="text-center pt-2 text-xs text-[#77766F]">
         Already have an account?{" "}
         <Link
           href="/sign-in"
-          className="font-semibold text-[#8C6E43] hover:text-[#0F172A] underline"
+          className="font-semibold text-[#123B32] hover:text-[#C6A56B] underline transition-colors"
         >
           Sign in
         </Link>

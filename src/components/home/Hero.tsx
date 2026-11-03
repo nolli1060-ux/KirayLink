@@ -1,53 +1,63 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowDown, MapPin, Sparkles } from "lucide-react";
 import PropertySearch from "@/components/properties/PropertySearch";
+import { getAllActiveProperties } from "@/lib/properties-store";
 
-export default function Hero() {
+export default async function Hero() {
+  const activeProperties = await getAllActiveProperties();
+  const featuredProperty = activeProperties.find((p) => p.featured) || activeProperties[0];
+
   return (
-    <section className="relative isolate overflow-hidden bg-[#0F172A] text-white">
+    <section className="relative isolate mx-auto min-h-[640px] max-w-[1600px] overflow-hidden bg-gradient-to-b from-[#123B32] via-[#0F322A] to-[#0A221C] text-white sm:min-h-[700px]">
+      {featuredProperty?.imageUrl && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-cover bg-[center_55%] opacity-35 mix-blend-luminosity"
+          style={{ backgroundImage: `url("${featuredProperty.imageUrl}")` }}
+        />
+      )}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-cover bg-center opacity-35"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85')",
-        }}
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(23,74,61,0.6)_0%,rgba(14,43,36,0.92)_55%,rgba(10,31,26,0.98)_100%)]"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/90 to-[#0F172A]/35" />
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:px-8">
-        <div className="max-w-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#C5A880]/50 bg-black/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#E5D3B4]">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Addis Ababa&apos;s verified homes
-          </div>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            Find a home that{" "}
-            <span className="text-[#D7BD94]">suits you.</span>
-          </h1>
-          <p className="max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">
-            Browse apartments and homes with verified ownership and clear rental
-            terms.
-          </p>
-          <PropertySearch />
-          <p className="text-xs text-slate-300">
-            Homes in Bole, Kazanchis, Old Airport, and other neighborhoods.
-          </p>
+
+      <div className="mx-auto flex min-h-[640px] max-w-7xl flex-col items-center justify-center px-4 pb-20 pt-16 text-center sm:min-h-[700px] sm:px-6 sm:pt-20 lg:px-8">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#C6A56B]/30 bg-black/25 px-4 py-2 text-xs font-semibold tracking-wide text-[#EDE8DE] backdrop-blur-md">
+          <MapPin className="h-4 w-4 text-[#C6A56B]" aria-hidden="true" />
+          <span>Curated Residences Across Addis Ababa</span>
         </div>
 
-        <div className="hidden justify-end lg:flex">
+        <h1 className="max-w-4xl text-4xl font-bold leading-[1.08] tracking-tight font-serif sm:text-6xl lg:text-7xl">
+          Come home to
+          <br />
+          <span className="text-[#C6A56B] italic font-normal">something better.</span>
+        </h1>
+        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#EDE8DE]/80 sm:text-base sm:leading-8">
+          Discover a curated portfolio of luxury residences, penthouses, and apartments in Addis Ababa with transparent lease terms and direct landlord representation.
+        </p>
+
+        <div className="mt-8 w-full max-w-3xl rounded-2xl bg-[#F8F6F0] p-2.5 shadow-[0_24px_70px_-24px_rgba(10,31,26,0.7)] border border-[#C6A56B]/30 sm:mt-10 sm:flex sm:items-center sm:rounded-full sm:p-2.5">
+          <PropertySearch />
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs font-medium text-[#EDE8DE]/75 sm:text-sm">
+          <span className="inline-flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
+            Verified luxury residences
+          </span>
+          <span aria-hidden="true" className="hidden h-1 w-1 rounded-full bg-[#C6A56B] sm:block" />
+          <span>Transparent lease terms</span>
+          <span aria-hidden="true" className="hidden h-1 w-1 rounded-full bg-[#C6A56B] sm:block" />
+          <span>Direct landlord inquiries</span>
+        </div>
+
+        <div className="mt-10 sm:mt-12">
           <Link
             href="/listings"
-            className="group flex items-center gap-4 rounded border border-white/20 bg-black/25 p-5 text-sm text-white backdrop-blur transition-colors hover:border-[#C5A880]"
+            className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#EDE8DE]/80 transition-colors hover:text-[#C6A56B]"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded bg-[#C5A880] text-[#0F172A]">
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span>
-              <span className="block font-semibold">Browse properties</span>
-              <span className="mt-1 block text-xs text-slate-300">
-                Find your next home
-              </span>
-            </span>
+            <span>Explore Collection</span>
+            <ArrowDown className="h-4 w-4 text-[#C6A56B] transition-transform group-hover:translate-y-0.5" aria-hidden="true" />
           </Link>
         </div>
       </div>

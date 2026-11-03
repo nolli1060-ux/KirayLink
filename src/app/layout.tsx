@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
@@ -22,8 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#0F172A] antialiased selection:bg-[#C5A880]/30 selection:text-[#0F172A]">
-        <Navbar />
+      <body className="min-h-screen flex flex-col bg-[#F8F6F0] text-[#242622] antialiased selection:bg-[#C6A56B]/25 selection:text-[#123B32]">
+        <Suspense fallback={<header className="sticky top-0 z-40 h-16 bg-[#F8F6F0]/95" />}>
+          <Navbar />
+        </Suspense>
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

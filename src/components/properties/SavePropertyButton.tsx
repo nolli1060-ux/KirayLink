@@ -44,18 +44,18 @@ export default function SavePropertyButton({
         type="button"
         disabled={isLoading}
         onClick={handleToggle}
-        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
+        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer shadow-xs ${
           isSaved
-            ? "bg-[#0F172A] text-white border-[#0F172A] hover:bg-[#1E293B]"
-            : "bg-white text-[#0F172A] border-[#CBD5E1] hover:border-[#C5A880] hover:bg-[#FDFBF7]"
+            ? "bg-[#123B32] text-white border-[#123B32] hover:bg-[#174A3D]"
+            : "bg-white text-[#123B32] border-[#EDE8DE] hover:border-[#C6A56B] hover:bg-[#F8F6F0]"
         }`}
       >
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#C6A56B]" aria-hidden="true" />
         ) : isSaved ? (
-          <Check className="w-4 h-4 text-[#C5A880]" aria-hidden="true" />
+          <Check className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
         ) : (
-          <Bookmark className="w-4 h-4 text-[#8C6E43]" aria-hidden="true" />
+          <Bookmark className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
         )}
         <span>{isSaved ? "Saved in Collection" : "Save Residence"}</span>
       </button>
@@ -63,7 +63,7 @@ export default function SavePropertyButton({
       {feedback && (
         <span
           role="status"
-          className="absolute -bottom-7 left-0 whitespace-nowrap text-[11px] font-medium text-[#8C6E43] bg-[#FDFBF7] px-2 py-0.5 rounded border border-[#E6E0D5] shadow-xs"
+          className="absolute -bottom-8 left-0 whitespace-nowrap text-[11px] font-bold text-[#123B32] bg-[#F5EFE4] px-3 py-1 rounded-full border border-[#C6A56B]/40 shadow-xs"
         >
           {feedback}
         </span>

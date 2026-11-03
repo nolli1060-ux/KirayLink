@@ -1,83 +1,23 @@
 "use server";
 
-import fs from "fs";
-import path from "path";
 import { revalidatePath } from "next/cache";
-import { getSession, requireAuth, getUsers } from "@/lib/auth";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { getSession, requireAuth, getUserRoles, findUserById } from "@/lib/auth";
 import {
   getAllActiveProperties,
   getActivePropertyById,
-  getCustomProperties,
-  saveCustomProperties,
-  setPropertyStatusOverride,
-  markPropertyDeleted,
+  createPropertyRecord,
+  updatePropertyRecord,
+  setPropertyStatus,
+  deletePropertyRecord,
 } from "@/lib/properties-store";
 import type { Property, PropertyStatus, PropertyType } from "@/types/property";
 import type { Inquiry, InquiryStatus } from "@/types/inquiry";
-
-const savedPropertiesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "saved-properties.json"
-);
-
-const inquiriesPath = path.join(
-  process.cwd(),
-  "src",
-  "data",
-  "inquiries.json"
-);
-
-interface SavedPropertyRecord {
-  tenantId: string;
-  propertyId: string;
-  savedAt: string;
-}
-
-// Helpers for reading/writing saved properties
-function getSavedRecords(): SavedPropertyRecord[] {
-  try {
-    if (fs.existsSync(savedPropertiesPath)) {
-      return JSON.parse(fs.readFileSync(savedPropertiesPath, "utf8"));
-    }
-  } catch (err) {
-    console.error("Failed to read saved properties:", err);
-  }
-  return [];
-}
-
-function saveSavedRecords(records: SavedPropertyRecord[]): void {
-  try {
-    fs.writeFileSync(
-      savedPropertiesPath,
-      JSON.stringify(records, null, 2),
-      "utf8"
-    );
-  } catch (err) {
-    console.error("Failed to save saved properties:", err);
-  }
-}
-
-// Helpers for reading/writing inquiries
-export async function getInquiries(): Promise<Inquiry[]> {
-  try {
-    if (fs.existsSync(inquiriesPath)) {
-      return JSON.parse(fs.readFileSync(inquiriesPath, "utf8"));
-    }
-  } catch (err) {
-    console.error("Failed to read inquiries:", err);
-  }
-  return [];
-}
-
-function saveInquiries(inquiries: Inquiry[]): void {
-  try {
-    fs.writeFileSync(inquiriesPath, JSON.stringify(inquiries, null, 2), "utf8");
-  } catch (err) {
-    console.error("Failed to save inquiries:", err);
-  }
-}
+import { getDatabase } from "@/lib/db";
+import {
+  inquiries as inquiryRows,
+  savedProperties as savedPropertyRows,
+} from "@/lib/schema";
 
 // ==========================================
 // 1. TENANT DASHBOARD QUERIES & ACTIONS
@@ -85,34 +25,72 @@ function saveInquiries(inquiries: Inquiry[]): void {
 
 export async function getTenantDashboardData() {
   const session = await requireAuth("tenant", "/tenant/dashboard");
-  const records = getSavedRecords().filter((r) => r.tenantId === session.id);
-  const allProperties = getAllActiveProperties();
+  const db = getDatabase();
 
-  const savedProperties: Property[] = records
-    .map((r) => allProperties.find((p) => p.id === r.propertyId))
-    .filter((p): p is Property => p !== undefined);
+  const savedRows = await db
+    .select({
+      propertyId: savedPropertyRows.propertyId,
+      savedAt: savedPropertyRows.savedAt,
+    })
+    .from(savedPropertyRows)
+    .where(eq(savedPropertyRows.tenantId, session.id))
+    .orderBy(desc(savedPropertyRows.savedAt));
 
-  const allInquiries = await getInquiries();
-  const inquiries = allInquiries.filter((inq) => inq.tenantId === session.id);
+  const allProperties = await getAllActiveProperties();
+  const savedPropsMap = new Map(allProperties.map((p) => [p.id, p]));
+
+  const savedProps: Property[] = [];
+  for (const row of savedRows) {
+    const prop = savedPropsMap.get(row.propertyId);
+    if (prop) {
+      savedProps.push(prop);
+    }
+  }
+
+  // Tenant inquiries
+  const userInquiries = await db
+    .select({ data: inquiryRows.data, status: inquiryRows.status })
+    .from(inquiryRows)
+    .where(eq(inquiryRows.tenantId, session.id))
+    .orderBy(desc(inquiryRows.createdAt));
+
+  const tenantInquiries = userInquiries.map((row) => ({
+    ...row.data,
+    status: row.status,
+  }));
+
+  // Fetch live user record
+  const freshUser = (await findUserById(session.id)) || session;
 
   return {
-    user: session,
-    savedProperties,
-    inquiries,
+    user: {
+      ...session,
+      name: freshUser.name,
+      phone: freshUser.phone,
+      company: freshUser.company,
+    },
+    savedProperties: savedProps,
+    inquiries: tenantInquiries,
   };
 }
 
 export async function unsavePropertyAction(propertyId: string) {
   const session = await getSession();
-  if (!session || session.role !== "tenant") {
+  if (!session) {
     return { success: false, error: "Authentication required." };
   }
 
-  const records = getSavedRecords().filter(
-    (r) => !(r.tenantId === session.id && r.propertyId === propertyId)
-  );
-  saveSavedRecords(records);
+  await getDatabase()
+    .delete(savedPropertyRows)
+    .where(
+      and(
+        eq(savedPropertyRows.tenantId, session.id),
+        eq(savedPropertyRows.propertyId, propertyId)
+      )
+    );
+
   revalidatePath("/tenant/dashboard");
+  revalidatePath("/listings");
   return { success: true };
 }
 
@@ -121,31 +99,41 @@ export async function toggleSavePropertyAction(propertyId: string) {
   if (!session) {
     return {
       success: false,
-      error: "Please sign in to save properties to your collection.",
+      error: "Please sign in as a tenant to save properties to your collection.",
     };
   }
 
-  const records = getSavedRecords();
-  const exists = records.some(
-    (r) => r.tenantId === session.id && r.propertyId === propertyId
-  );
-
-  let isSavedNow = false;
-  if (exists) {
-    saveSavedRecords(
-      records.filter(
-        (r) => !(r.tenantId === session.id && r.propertyId === propertyId)
+  const database = getDatabase();
+  const existing = await database
+    .select({ propertyId: savedPropertyRows.propertyId })
+    .from(savedPropertyRows)
+    .where(
+      and(
+        eq(savedPropertyRows.tenantId, session.id),
+        eq(savedPropertyRows.propertyId, propertyId)
       )
-    );
-    isSavedNow = false;
+    )
+    .limit(1);
+
+  const isSavedNow = existing.length === 0;
+  if (isSavedNow) {
+    await database
+      .insert(savedPropertyRows)
+      .values({
+        tenantId: session.id,
+        propertyId,
+        savedAt: new Date().toISOString(),
+      })
+      .onConflictDoNothing();
   } else {
-    records.push({
-      tenantId: session.id,
-      propertyId,
-      savedAt: new Date().toISOString(),
-    });
-    saveSavedRecords(records);
-    isSavedNow = true;
+    await database
+      .delete(savedPropertyRows)
+      .where(
+        and(
+          eq(savedPropertyRows.tenantId, session.id),
+          eq(savedPropertyRows.propertyId, propertyId)
+        )
+      );
   }
 
   revalidatePath("/tenant/dashboard");
@@ -159,9 +147,9 @@ export async function toggleSavePropertyAction(propertyId: string) {
 
 export async function getLandlordDashboardData() {
   const session = await requireAuth("landlord", "/landlord/dashboard");
-  const allProperties = getAllActiveProperties();
+  const allProperties = await getAllActiveProperties();
 
-  // Server-side ownership check: only return properties owned by this landlord
+  // Server-side ownership check
   const myProperties = allProperties.filter(
     (p) =>
       p.landlord.id === session.id ||
@@ -169,17 +157,42 @@ export async function getLandlordDashboardData() {
   );
 
   const myPropertyIds = new Set(myProperties.map((p) => p.id));
-  const allInquiries = await getInquiries();
 
-  // Inquiries for this landlord's properties
+  // Inquiries for this landlord
+  const inqRows = await getDatabase()
+    .select({ data: inquiryRows.data, status: inquiryRows.status })
+    .from(inquiryRows)
+    .orderBy(desc(inquiryRows.createdAt));
+
+  const allInquiries = inqRows.map((r) => ({
+    ...r.data,
+    status: r.status,
+  }));
+
   const inquiries = allInquiries.filter(
     (inq) => inq.landlordId === session.id || myPropertyIds.has(inq.propertyId)
   );
 
+  const freshUser = (await findUserById(session.id)) || session;
+
+  const stats = {
+    totalProperties: myProperties.length,
+    activeListings: myProperties.filter((p) => p.status === "available").length,
+    unavailableListings: myProperties.filter((p) => p.status !== "available").length,
+    totalInquiries: inquiries.length,
+    pendingInquiries: inquiries.filter((i) => i.status === "pending").length,
+  };
+
   return {
-    user: session,
+    user: {
+      ...session,
+      name: freshUser.name,
+      phone: freshUser.phone,
+      company: freshUser.company,
+    },
     myProperties,
     inquiries,
+    stats,
   };
 }
 
@@ -188,42 +201,55 @@ export async function createPropertyAction(
   formData: FormData
 ): Promise<{ success: boolean; error?: string; message?: string }> {
   const session = await getSession();
-  // Server-side permission check: never trust client role
-  if (!session || session.role !== "landlord") {
+  if (!session || (session.role !== "landlord" && session.role !== "admin")) {
     return {
       success: false,
       error: "Unauthorized: Only registered landlords may create listings.",
     };
   }
 
+  const landlordUser = await findUserById(session.id);
+  const landlordPhone =
+    landlordUser?.phone || session.phone || "+251 91 100 0000";
+
   const title = (formData.get("title") as string)?.trim() || "";
   const tagline = (formData.get("tagline") as string)?.trim() || "";
   const description = (formData.get("description") as string)?.trim() || "";
   const price = Number(formData.get("price"));
-  const propertyType = (formData.get("propertyType") as PropertyType) || "Apartment";
+  const propertyType =
+    (formData.get("propertyType") as PropertyType) || "Apartment";
   const bedrooms = Number(formData.get("bedrooms"));
   const bathrooms = Number(formData.get("bathrooms"));
   const areaSqM = Number(formData.get("areaSqM"));
+  const region = (formData.get("region") as string)?.trim() || "Addis Ababa";
+  const city = (formData.get("city") as string)?.trim() || "Addis Ababa";
   const location = (formData.get("location") as string)?.trim() || "";
   const neighborhood = (formData.get("neighborhood") as string)?.trim() || "";
-  const city = (formData.get("city") as string)?.trim() || "Addis Ababa";
-  const imageUrl =
-    (formData.get("imageUrl") as string)?.trim() ||
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80";
+  const status =
+    (formData.get("status") as PropertyStatus) || "available";
+
+  const imagesRaw = (formData.get("images") as string)?.trim() || "";
+  let images: string[] = [];
+  try {
+    images = imagesRaw ? JSON.parse(imagesRaw) : [];
+  } catch {
+    images = imagesRaw.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+
+  const primaryImage =
+    (formData.get("primaryImage") as string)?.trim() || images[0] || "";
+
   const amenitiesRaw = (formData.get("amenities") as string)?.trim() || "";
   const furnished = formData.get("furnished") === "true";
 
   // Strict validation
   if (!title || title.length < 5) {
-    return { success: false, error: "Title must be at least 5 characters." };
-  }
-  if (!tagline || tagline.length < 5) {
-    return { success: false, error: "Please provide a short tagline." };
+    return { success: false, error: "Title must be at least 5 characters long." };
   }
   if (!description || description.length < 20) {
     return {
       success: false,
-      error: "Description must be at least 20 characters long.",
+      error: "Please enter a detailed description of at least 20 characters.",
     };
   }
   if (isNaN(price) || price <= 0) {
@@ -242,10 +268,16 @@ export async function createPropertyAction(
     };
   }
   if (!location) {
-    return { success: false, error: "Please specify the street location." };
+    return { success: false, error: "Please provide a specific street location or address." };
   }
   if (!neighborhood) {
-    return { success: false, error: "Please specify the district/neighborhood." };
+    return { success: false, error: "Please specify the district / sub-city." };
+  }
+  if (images.length === 0) {
+    return {
+      success: false,
+      error: "Please upload at least one photograph of the property.",
+    };
   }
 
   const amenitiesList = amenitiesRaw
@@ -258,46 +290,159 @@ export async function createPropertyAction(
       ];
 
   const newProperty: Property = {
-    id: `prop-custom-${Date.now()}`,
+    id: `prop-${Date.now()}`,
     title,
-    tagline,
+    tagline: tagline || `${bedrooms} Bed ${propertyType} in ${neighborhood}`,
     description,
     price,
     rentPeriod: "month",
+    region,
+    city,
     location,
     neighborhood,
-    city,
     propertyType,
     bedrooms,
     bathrooms,
     care: areaSqM,
-    imageUrl,
-    images: [imageUrl],
+    imageUrl: primaryImage || images[0],
+    images,
     amenities: amenitiesList,
     featured: false,
-    status: "available",
+    status,
     yearBuilt: new Date().getFullYear(),
     furnished,
     landlord: {
       id: session.id,
       name: session.name,
       email: session.email,
-      phone: "+251 91 100 0000",
-      company: session.company || "Independent Landlord",
-      responseTime: "within 2 hours",
+      phone: landlordPhone,
+      company: landlordUser?.company || session.company || "Independent Landlord",
+      responseTime: "within 24 hours",
     },
     createdAt: new Date().toISOString(),
   };
 
-  const customList = getCustomProperties();
-  customList.unshift(newProperty);
-  saveCustomProperties(customList);
+  await createPropertyRecord(newProperty);
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/listings");
   revalidatePath("/");
 
   return { success: true, message: "Property listed successfully!" };
+}
+
+export async function updatePropertyAction(
+  prevState: { success: boolean; error?: string; message?: string } | null,
+  formData: FormData
+): Promise<{ success: boolean; error?: string; message?: string }> {
+  const session = await getSession();
+  if (!session) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const propertyId = (formData.get("propertyId") as string)?.trim() || "";
+  const existingProp = await getActivePropertyById(propertyId);
+
+  if (!existingProp) {
+    return { success: false, error: "Property not found." };
+  }
+
+  // Ownership verification
+  const isOwner =
+    existingProp.landlord.id === session.id ||
+    existingProp.landlord.email.toLowerCase() === session.email.toLowerCase();
+  const isAdmin = session.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    return {
+      success: false,
+      error: "Forbidden: You do not have permission to edit this property.",
+    };
+  }
+
+  const title = (formData.get("title") as string)?.trim() || "";
+  const tagline = (formData.get("tagline") as string)?.trim() || "";
+  const description = (formData.get("description") as string)?.trim() || "";
+  const price = Number(formData.get("price"));
+  const propertyType =
+    (formData.get("propertyType") as PropertyType) || existingProp.propertyType;
+  const bedrooms = Number(formData.get("bedrooms"));
+  const bathrooms = Number(formData.get("bathrooms"));
+  const areaSqM = Number(formData.get("areaSqM"));
+  const region = (formData.get("region") as string)?.trim() || existingProp.region || "Addis Ababa";
+  const city = (formData.get("city") as string)?.trim() || "Addis Ababa";
+  const location = (formData.get("location") as string)?.trim() || "";
+  const neighborhood = (formData.get("neighborhood") as string)?.trim() || "";
+  const status =
+    (formData.get("status") as PropertyStatus) || existingProp.status;
+
+  const imagesRaw = (formData.get("images") as string)?.trim() || "";
+  let images: string[] = existingProp.images;
+  if (imagesRaw) {
+    try {
+      images = JSON.parse(imagesRaw);
+    } catch {
+      images = imagesRaw.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+  }
+
+  const primaryImage =
+    (formData.get("primaryImage") as string)?.trim() ||
+    images[0] ||
+    existingProp.imageUrl;
+
+  const amenitiesRaw = (formData.get("amenities") as string)?.trim() || "";
+  const furnished = formData.get("furnished") === "true";
+
+  if (!title || title.length < 5) {
+    return { success: false, error: "Title must be at least 5 characters long." };
+  }
+  if (!description || description.length < 20) {
+    return {
+      success: false,
+      error: "Description must be at least 20 characters long.",
+    };
+  }
+  if (isNaN(price) || price <= 0) {
+    return { success: false, error: "Please enter a valid monthly rental price." };
+  }
+  if (images.length === 0) {
+    return { success: false, error: "Please provide at least one property photograph." };
+  }
+
+  const amenitiesList = amenitiesRaw
+    ? amenitiesRaw.split(",").map((a) => a.trim()).filter(Boolean)
+    : existingProp.amenities;
+
+  const updatedProperty: Property = {
+    ...existingProp,
+    title,
+    tagline: tagline || existingProp.tagline,
+    description,
+    price,
+    propertyType,
+    bedrooms,
+    bathrooms,
+    care: areaSqM,
+    region,
+    city,
+    location,
+    neighborhood,
+    imageUrl: primaryImage,
+    images,
+    amenities: amenitiesList,
+    status,
+    furnished,
+  };
+
+  await updatePropertyRecord(updatedProperty);
+
+  revalidatePath("/landlord/dashboard");
+  revalidatePath("/listings");
+  revalidatePath(`/properties/${propertyId}`);
+  revalidatePath("/");
+
+  return { success: true, message: "Property updated successfully!" };
 }
 
 export async function updatePropertyStatusAction(
@@ -309,12 +454,11 @@ export async function updatePropertyStatusAction(
     return { success: false, error: "Authentication required." };
   }
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) {
     return { success: false, error: "Property not found." };
   }
 
-  // Strict ownership check: only owner landlord or admin can change status
   const isOwner =
     property.landlord.id === session.id ||
     property.landlord.email.toLowerCase() === session.email.toLowerCase();
@@ -323,16 +467,15 @@ export async function updatePropertyStatusAction(
   if (!isOwner && !isAdmin) {
     return {
       success: false,
-      error: "Forbidden: You do not have permission to modify this listing.",
+      error: "Forbidden: You do not have permission to manage this listing.",
     };
   }
 
-  setPropertyStatusOverride(propertyId, newStatus);
+  await setPropertyStatus(propertyId, newStatus);
+
   revalidatePath("/landlord/dashboard");
-  revalidatePath("/admin/dashboard");
   revalidatePath("/listings");
   revalidatePath(`/properties/${propertyId}`);
-
   return { success: true };
 }
 
@@ -342,12 +485,11 @@ export async function deletePropertyAction(propertyId: string) {
     return { success: false, error: "Authentication required." };
   }
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) {
     return { success: false, error: "Property not found." };
   }
 
-  // Strict ownership check: only owner landlord or admin can delete
   const isOwner =
     property.landlord.id === session.id ||
     property.landlord.email.toLowerCase() === session.email.toLowerCase();
@@ -360,20 +502,12 @@ export async function deletePropertyAction(propertyId: string) {
     };
   }
 
-  // If custom property, remove from custom list
-  const customList = getCustomProperties();
-  const filteredCustom = customList.filter((p) => p.id !== propertyId);
-  if (filteredCustom.length !== customList.length) {
-    saveCustomProperties(filteredCustom);
-  }
-
-  // Record deletion
-  markPropertyDeleted(propertyId);
+  await deletePropertyRecord(propertyId);
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/admin/dashboard");
   revalidatePath("/listings");
-
+  revalidatePath("/");
   return { success: true };
 }
 
@@ -386,91 +520,36 @@ export async function updateInquiryStatusAction(
     return { success: false, error: "Authentication required." };
   }
 
-  const inquiries = await getInquiries();
-  const inqIndex = inquiries.findIndex((i) => i.id === inquiryId);
-  if (inqIndex === -1) {
+  const inqRows = await getDatabase()
+    .select({ data: inquiryRows.data, landlordId: inquiryRows.landlordId })
+    .from(inquiryRows)
+    .where(eq(inquiryRows.id, inquiryId))
+    .limit(1);
+
+  const inquiry = inqRows[0];
+  if (!inquiry) {
     return { success: false, error: "Inquiry not found." };
   }
 
-  const inq = inquiries[inqIndex];
-  // Verify that current user is the landlord for this inquiry or an admin
-  if (inq.landlordId !== session.id && session.role !== "admin") {
+  if (inquiry.landlordId !== session.id && session.role !== "admin") {
     return {
       success: false,
       error: "Forbidden: You do not have access to manage this inquiry.",
     };
   }
 
-  inquiries[inqIndex].status = newStatus;
-  saveInquiries(inquiries);
+  await getDatabase()
+    .update(inquiryRows)
+    .set({
+      status: newStatus,
+      data: sql<Inquiry>`jsonb_set(${inquiryRows.data}, '{status}', to_jsonb(${newStatus}::text), true)`,
+    })
+    .where(eq(inquiryRows.id, inquiryId));
 
   revalidatePath("/landlord/dashboard");
   revalidatePath("/tenant/dashboard");
-
   return { success: true };
 }
-
-// ==========================================
-// 3. ADMIN DASHBOARD QUERIES & ACTIONS
-// ==========================================
-
-export async function getAdminDashboardData() {
-  const session = await requireAuth("admin", "/admin/dashboard");
-  const allProperties = getAllActiveProperties();
-  const allInquiries = await getInquiries();
-  const allUsers = await getUsers();
-
-  const stats = {
-    totalProperties: allProperties.length,
-    activeProperties: allProperties.filter((p) => p.status === "available").length,
-    pendingProperties: allProperties.filter((p) => p.status === "pending").length,
-    rentedProperties: allProperties.filter((p) => p.status === "rented").length,
-    totalInquiries: allInquiries.length,
-    pendingInquiries: allInquiries.filter((i) => i.status === "pending").length,
-    totalUsers: allUsers.length,
-    tenantCount: allUsers.filter((u) => u.role === "tenant").length,
-    landlordCount: allUsers.filter((u) => u.role === "landlord").length,
-  };
-
-  return {
-    user: session,
-    allProperties,
-    allInquiries,
-    allUsers,
-    stats,
-  };
-}
-
-export async function adminUpdatePropertyStatusAction(
-  propertyId: string,
-  newStatus: PropertyStatus
-) {
-  const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return { success: false, error: "Administrator authorization required." };
-  }
-
-  setPropertyStatusOverride(propertyId, newStatus);
-  revalidatePath("/admin/dashboard");
-  revalidatePath("/listings");
-  return { success: true };
-}
-
-export async function adminDeletePropertyAction(propertyId: string) {
-  const session = await getSession();
-  if (!session || session.role !== "admin") {
-    return { success: false, error: "Administrator authorization required." };
-  }
-
-  markPropertyDeleted(propertyId);
-  revalidatePath("/admin/dashboard");
-  revalidatePath("/listings");
-  return { success: true };
-}
-
-// ==========================================
-// 4. PUBLIC / TENANT INQUIRY SUBMISSION
-// ==========================================
 
 export async function submitInquiryAction(formData: FormData) {
   const propertyId = (formData.get("propertyId") as string)?.trim() || "";
@@ -481,14 +560,14 @@ export async function submitInquiryAction(formData: FormData) {
   const message = (formData.get("message") as string)?.trim() || "";
 
   if (!propertyId) return { success: false, error: "Property reference missing." };
-  if (!name) return { success: false, error: "Name is required." };
+  if (!name) return { success: false, error: "Full name is required." };
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { success: false, error: "Valid email is required." };
+    return { success: false, error: "Valid email address is required." };
   }
   if (!phone) return { success: false, error: "Phone number is required." };
-  if (!message) return { success: false, error: "Message is required." };
+  if (!message) return { success: false, error: "Please write a message." };
 
-  const property = getActivePropertyById(propertyId);
+  const property = await getActivePropertyById(propertyId);
   if (!property) return { success: false, error: "Property not found." };
 
   const session = await getSession();
@@ -510,13 +589,86 @@ export async function submitInquiryAction(formData: FormData) {
     createdAt: new Date().toISOString(),
   };
 
-  const inquiries = await getInquiries();
-  inquiries.unshift(newInquiry);
-  saveInquiries(inquiries);
+  await getDatabase().insert(inquiryRows).values({
+    id: newInquiry.id,
+    propertyId: newInquiry.propertyId,
+    tenantId: newInquiry.tenantId,
+    landlordId: newInquiry.landlordId,
+    status: newInquiry.status,
+    data: newInquiry,
+    createdAt: newInquiry.createdAt,
+  });
 
   revalidatePath("/tenant/dashboard");
   revalidatePath("/landlord/dashboard");
   revalidatePath("/admin/dashboard");
 
+  return { success: true };
+}
+
+// ==========================================
+// 3. ADMIN DASHBOARD QUERIES & ACTIONS
+// ==========================================
+
+export async function getAdminDashboardData() {
+  const session = await requireAuth("admin", "/admin/dashboard");
+  const allProperties = await getAllActiveProperties();
+
+  const inqRows = await getDatabase()
+    .select({ data: inquiryRows.data, status: inquiryRows.status })
+    .from(inquiryRows)
+    .orderBy(desc(inquiryRows.createdAt));
+
+  const allInquiries = inqRows.map((r) => ({
+    ...r.data,
+    status: r.status,
+  }));
+
+  const userRoles = await getUserRoles();
+
+  const stats = {
+    totalProperties: allProperties.length,
+    activeProperties: allProperties.filter((p) => p.status === "available").length,
+    pendingProperties: allProperties.filter((p) => p.status === "pending").length,
+    rentedProperties: allProperties.filter((p) => p.status === "rented").length,
+    totalInquiries: allInquiries.length,
+    pendingInquiries: allInquiries.filter((i) => i.status === "pending").length,
+    totalUsers: userRoles.length,
+    tenantCount: userRoles.filter((role) => role === "tenant").length,
+    landlordCount: userRoles.filter((role) => role === "landlord").length,
+  };
+
+  return {
+    user: session,
+    allProperties,
+    allInquiries,
+    stats,
+  };
+}
+
+export async function adminUpdatePropertyStatusAction(
+  propertyId: string,
+  newStatus: PropertyStatus
+) {
+  const session = await getSession();
+  if (!session || session.role !== "admin") {
+    return { success: false, error: "Administrator authorization required." };
+  }
+
+  await setPropertyStatus(propertyId, newStatus);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/listings");
+  return { success: true };
+}
+
+export async function adminDeletePropertyAction(propertyId: string) {
+  const session = await getSession();
+  if (!session || session.role !== "admin") {
+    return { success: false, error: "Administrator authorization required." };
+  }
+
+  await deletePropertyRecord(propertyId);
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/listings");
   return { success: true };
 }

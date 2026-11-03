@@ -28,6 +28,7 @@ export interface Property {
   rentPeriod: "month" | "year";
   location: string;
   neighborhood: string;
+  region?: string;
   city: string;
   propertyType: PropertyType;
   bedrooms: number;

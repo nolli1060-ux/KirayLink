@@ -16,5 +16,6 @@ export interface SessionUser {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string;
   company?: string;
 }

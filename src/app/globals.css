@@ -1,110 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  --color-navy: #0f172a;
-  --color-navy-dark: #080d1a;
-  --color-navy-light: #1e293b;
-  --color-navy-muted: #334155;
+  /* ==================================================
+     KirayLink Luxury Real Estate Design System
+     Palette: Forest Green, Emerald, Champagne Gold,
+     Warm Ivory, Soft Beige, Charcoal, and Muted Gray
+     ================================================== */
+  --color-forest: #123b32;
+  --color-forest-dark: #0c2822;
+  --color-forest-light: #16463c;
+  --color-emerald: #174a3d;
+  --color-emerald-light: #1f6150;
 
-  --color-gold: #c5a880;
-  --color-gold-hover: #b8986c;
-  --color-gold-dark: #8c6e43;
-  --color-gold-light: #f7f3ec;
-  --color-gold-subtle: #faf6f0;
+  --color-champagne: #c6a56b;
+  --color-champagne-light: #d8bd8e;
+  --color-champagne-dark: #a38448;
+  --color-champagne-subtle: #f5efe4;
+  --color-champagne-glow: rgba(198, 165, 107, 0.25);
 
-  --color-ivory: #fdfbf7;
-  --color-ivory-dark: #f5f1e8;
+  --color-ivory: #f8f6f0;
+  --color-ivory-warm: #faf8f5;
+  --color-ivory-light: #fcfbf9;
+
+  --color-beige: #ede8de;
+  --color-beige-dark: #ded7c9;
+  --color-beige-light: #f4f0e7;
+
+  --color-charcoal: #242622;
+  --color-charcoal-dark: #191b18;
+  --color-charcoal-light: #353832;
+
+  --color-muted: #77766f;
+  --color-muted-light: #94938b;
   --color-surface: #ffffff;
 
-  --color-border: #e6e0d5;
-  --color-border-subtle: #f0ece3;
-  --color-border-dark: #27354a;
+  --color-border: #ede8de;
+  --color-border-subtle: #f4f0e8;
+  --color-border-gold: rgba(198, 165, 107, 0.35);
 
-  --color-text-main: #0f172a;
-  --color-text-muted: #5b677a;
-  --color-text-light: #8896ab;
+  --color-text-main: #242622;
+  --color-text-muted: #77766f;
+  --color-text-light: #94938b;
 
-  /* Semantic Alert Colors */
-  --color-success: #1b6348;
-  --color-success-bg: #edf7f2;
-  --color-error: #9e2a2b;
-  --color-error-bg: #fdf2f2;
+  /* Backward Compatibility Semantic Tokens */
+  --color-navy: #123b32;
+  --color-navy-dark: #0c2822;
+  --color-navy-light: #174a3d;
+  --color-navy-muted: #1f6150;
+
+  --color-gold: #c6a56b;
+  --color-gold-hover: #a38448;
+  --color-gold-dark: #a38448;
+  --color-gold-light: #f5efe4;
+  --color-gold-subtle: #faf6f0;
+
+  --color-success: #174a3d;
+  --color-success-bg: #eaf3f0;
+  --color-error: #8b2627;
+  --color-error-bg: #fbefef;
+
+  /* Typography Variables */
+  --font-serif: "Playfair Display", "Cormorant Garamond", "Didot", "Bodoni MT", "Georgia", serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 @theme inline {
-  --color-navy: var(--color-navy);
-  --color-navy-dark: var(--color-navy-dark);
-  --color-navy-light: var(--color-navy-light);
-  --color-navy-muted: var(--color-navy-muted);
+  --color-forest: var(--color-forest);
+  --color-forest-dark: var(--color-forest-dark);
+  --color-forest-light: var(--color-forest-light);
+  --color-emerald: var(--color-emerald);
+  --color-emerald-light: var(--color-emerald-light);
 
-  --color-gold: var(--color-gold);
-  --color-gold-hover: var(--color-gold-hover);
-  --color-gold-dark: var(--color-gold-dark);
-  --color-gold-light: var(--color-gold-light);
-  --color-gold-subtle: var(--color-gold-subtle);
+  --color-champagne: var(--color-champagne);
+  --color-champagne-light: var(--color-champagne-light);
+  --color-champagne-dark: var(--color-champagne-dark);
+  --color-champagne-subtle: var(--color-champagne-subtle);
 
   --color-ivory: var(--color-ivory);
-  --color-ivory-dark: var(--color-ivory-dark);
+  --color-ivory-warm: var(--color-ivory-warm);
+  --color-beige: var(--color-beige);
+  --color-beige-dark: var(--color-beige-dark);
+
+  --color-charcoal: var(--color-charcoal);
+  --color-charcoal-dark: var(--color-charcoal-dark);
+  --color-muted: var(--color-muted);
   --color-surface: var(--color-surface);
 
   --color-border: var(--color-border);
   --color-border-subtle: var(--color-border-subtle);
-  --color-border-dark: var(--color-border-dark);
+  --color-border-gold: var(--color-border-gold);
 
   --color-text-main: var(--color-text-main);
   --color-text-muted: var(--color-text-muted);
-  --color-text-light: var(--color-text-light);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
 }
 
+/* Base Body Setup */
 body {
   background-color: var(--color-ivory);
-  color: var(--color-text-main);
-  font-family:
-    var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif;
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Luxury Serif Typography */
+.font-serif,
+h1.luxury-serif,
+h2.luxury-serif,
+.luxury-heading {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
+/* Subtle, Refined Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ivory);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-beige-dark);
+  border-radius: 9999px;
+  border: 1px solid var(--color-ivory);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-champagne-dark);
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(198, 165, 107, 0.28);
+  color: var(--color-forest);
+}
+
+/* Luxury Glass Panels */
+.luxury-glass {
+  background: rgba(248, 246, 240, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(198, 165, 107, 0.22);
+}
+
+.luxury-glass-dark {
+  background: rgba(18, 59, 50, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(198, 165, 107, 0.25);
+}
+
+/* Luxury Card Hover Effect */
+.luxury-card-hover {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease;
+}
+
+.luxury-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-champagne);
+  box-shadow: 0 20px 45px -20px rgba(18, 59, 50, 0.16);
+}
+
+/* Legacy Utility Color Mappings */
 .bg-navy {
-  background-color: var(--color-navy);
+  background-color: var(--color-forest);
 }
 .bg-navy-dark {
-  background-color: var(--color-navy-dark);
+  background-color: var(--color-forest-dark);
 }
 .bg-gold {
-  background-color: var(--color-gold);
+  background-color: var(--color-champagne);
 }
 .bg-gold-light {
-  background-color: var(--color-gold-light);
+  background-color: var(--color-champagne-subtle);
 }
 .bg-ivory {
   background-color: var(--color-ivory);
 }
 .bg-ivory-dark {
-  background-color: var(--color-ivory-dark);
+  background-color: var(--color-beige);
 }
 
 .text-navy {
-  color: var(--color-navy);
+  color: var(--color-forest);
 }
 .text-gold {
-  color: var(--color-gold-dark);
+  color: var(--color-champagne-dark);
 }
 .text-gold-light {
-  color: var(--color-gold);
+  color: var(--color-champagne);
 }
 .text-muted {
-  color: var(--color-text-muted);
+  color: var(--color-muted);
 }
 
 .border-warm {
   border-color: var(--color-border);
 }
 .border-gold {
-  border-color: var(--color-gold);
+  border-color: var(--color-champagne);
 }
