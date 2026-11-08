@@ -40,6 +40,9 @@ yarn-error.log*
 # neon
 .neon
 
+# netlify
+.netlify
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
