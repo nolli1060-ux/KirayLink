@@ -22,7 +22,7 @@ import {
   adminUpdatePropertyStatusAction,
   adminDeletePropertyAction,
 } from "@/lib/dashboard-actions";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getSafeImageUrl } from "@/lib/utils";
 
 interface AdminStats {
   totalProperties: number;
@@ -331,7 +331,7 @@ export default function ListingManagement({
                         <div className="flex items-center gap-3">
                           <div className="relative w-14 h-11 shrink-0 rounded-lg bg-[#F8F6F0] border border-[#EDE8DE] overflow-hidden">
                             <Image
-                              src={prop.imageUrl}
+                              src={getSafeImageUrl(prop.imageUrl)}
                               alt={prop.title}
                               fill
                               sizes="56px"

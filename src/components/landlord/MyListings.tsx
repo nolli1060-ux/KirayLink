@@ -12,7 +12,7 @@ import {
   updatePropertyStatusAction,
   deletePropertyAction,
 } from "@/lib/dashboard-actions";
-import { formatPrice, formatCare } from "@/lib/utils";
+import { formatPrice, formatCare, getSafeImageUrl } from "@/lib/utils";
 
 interface MyListingsProps {
   initialProperties: Property[];
@@ -111,7 +111,8 @@ export default function MyListings({
         <div className="space-y-4">
           {properties.map((prop) => {
             const isBusy = busyId === prop.id;
-            const displayImage = prop.imageUrl || prop.images?.[0];
+            const rawImage = prop.imageUrl || prop.images?.[0];
+            const displayImage = rawImage ? getSafeImageUrl(rawImage) : null;
 
             return (
               <div

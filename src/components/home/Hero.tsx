@@ -2,18 +2,20 @@ import Link from "next/link";
 import { ArrowDown, MapPin, Sparkles } from "lucide-react";
 import PropertySearch from "@/components/properties/PropertySearch";
 import { getAllActiveProperties } from "@/lib/properties-store";
+import { getSafeImageUrl } from "@/lib/utils";
 
 export default async function Hero() {
   const activeProperties = await getAllActiveProperties();
   const featuredProperty = activeProperties.find((p) => p.featured) || activeProperties[0];
+  const heroImage = featuredProperty?.imageUrl ? getSafeImageUrl(featuredProperty.imageUrl) : null;
 
   return (
     <section className="relative isolate mx-auto min-h-[640px] max-w-[1600px] overflow-hidden bg-gradient-to-b from-[#123B32] via-[#0F322A] to-[#0A221C] text-white sm:min-h-[700px]">
-      {featuredProperty?.imageUrl && (
+      {heroImage && (
         <div
           aria-hidden="true"
           className="absolute inset-0 -z-20 bg-cover bg-[center_55%] opacity-35 mix-blend-luminosity"
-          style={{ backgroundImage: `url("${featuredProperty.imageUrl}")` }}
+          style={{ backgroundImage: `url("${heroImage}")` }}
         />
       )}
       <div

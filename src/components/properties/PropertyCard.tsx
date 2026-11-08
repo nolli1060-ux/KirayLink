@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Bed, Bath, Maximize2, MapPin, Building2, ArrowRight } from "lucide-react";
 import type { Property } from "@/types/property";
 import Badge from "@/components/ui/Badge";
-import { formatPrice, formatCare } from "@/lib/utils";
+import { formatPrice, formatCare, getSafeImageUrl } from "@/lib/utils";
 
 interface PropertyCardProps {
   property: Property;
@@ -14,7 +14,8 @@ export default function PropertyCard({
   property,
   priority = false,
 }: PropertyCardProps) {
-  const displayImage = property.imageUrl || property.images?.[0];
+  const rawImage = property.imageUrl || property.images?.[0];
+  const displayImage = rawImage ? getSafeImageUrl(rawImage) : null;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-[#EDE8DE] bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#C6A56B] hover:shadow-[0_22px_50px_-25px_rgba(18,59,50,0.22)]">

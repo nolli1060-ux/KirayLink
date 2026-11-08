@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Camera, ChevronLeft, ChevronRight } from "lucide-react";
+import { getSafeImageUrl } from "@/lib/utils";
 
 interface PropertyGalleryProps {
   images: string[];
@@ -14,7 +15,7 @@ export default function PropertyGallery({
   title,
 }: PropertyGalleryProps) {
   const [activeIdx, setActiveIdx] = useState(0);
-  const displayImages = images.filter(Boolean);
+  const displayImages = (images || []).map(getSafeImageUrl).filter(Boolean);
 
   const handlePrev = useCallback(() => {
     setActiveIdx((prev) => (prev > 0 ? prev - 1 : displayImages.length - 1));

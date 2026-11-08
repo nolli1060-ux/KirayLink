@@ -23,3 +23,19 @@ export function formatCare(care: number | undefined | null): string {
     maximumFractionDigits: 1,
   }).format(safeValue);
 }
+
+export const DEFAULT_PROPERTY_FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80";
+
+export function getSafeImageUrl(url: string | undefined | null): string {
+  if (!url || typeof url !== "string") return DEFAULT_PROPERTY_FALLBACK_IMAGE;
+  const trimmed = url.trim();
+  if (
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed;
+  }
+  return DEFAULT_PROPERTY_FALLBACK_IMAGE;
+}

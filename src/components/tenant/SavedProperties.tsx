@@ -8,7 +8,7 @@ import type { Property } from "@/types/property";
 import Badge from "@/components/ui/Badge";
 import TenantEmptyState from "@/components/tenant/TenantEmptyState";
 import { unsavePropertyAction } from "@/lib/dashboard-actions";
-import { formatPrice, formatCare } from "@/lib/utils";
+import { formatPrice, formatCare, getSafeImageUrl } from "@/lib/utils";
 
 interface SavedPropertiesProps {
   initialProperties: Property[];
@@ -61,7 +61,8 @@ export default function SavedProperties({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {properties.map((property) => {
-          const displayImage = property.imageUrl || property.images?.[0];
+          const rawImage = property.imageUrl || property.images?.[0];
+          const displayImage = rawImage ? getSafeImageUrl(rawImage) : null;
 
           return (
             <article
