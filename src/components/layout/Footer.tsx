@@ -1,81 +1,88 @@
 import Link from "next/link";
-import { ArrowUpRight, Building2 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0C2822] text-[#EDE8DE] border-t border-[#174A3D]/60">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_0.8fr_0.8fr] md:py-20 lg:px-8">
-        <div className="max-w-sm space-y-4">
-          <Link
+    <footer className="bg-strong-surface text-on-strong-surface">
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 sm:py-16 md:grid-cols-[1.4fr_0.8fr_0.8fr] lg:px-8">
+        <div className="max-w-sm">
+          <BrandLogo
             href="/"
-            className="inline-flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#C6A56B]"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C6A56B] text-[#123B32] shadow-sm">
-              <Building2 className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span className="text-xl font-bold tracking-tight text-white font-serif">
-              Kiray<span className="text-[#C6A56B]">Link</span>
-            </span>
-          </Link>
-          <p className="text-sm leading-relaxed text-[#EDE8DE]/70">
-            Ethiopia&apos;s refined platform for luxury residences, penthouses, and premier rental properties in Addis Ababa.
+            size="footer"
+            showWordmark
+            wordmarkClassName="font-serif text-xl font-semibold tracking-tight text-on-strong-surface"
+          />
+          <p className="mt-5 text-sm leading-7 text-white/70">
+            A thoughtful way to discover available rental homes and connect
+            with landlords in Addis Ababa.
           </p>
-          <div className="pt-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#C6A56B]/30 bg-[#123B32]/60 px-3 py-1 text-[11px] font-medium text-[#C6A56B]">
-              Addis Ababa · Luxury Real Estate
-            </span>
-          </div>
+          <p className="mt-4 text-xs font-medium uppercase tracking-[0.15em] text-white/60">
+            Addis Ababa · Ethiopia
+          </p>
         </div>
 
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-[#C6A56B]">
-            Residences & Discovery
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+            Explore
           </h2>
-          <div className="mt-5 flex flex-col items-start gap-3.5 text-sm text-[#EDE8DE]/75">
-            <Link className="transition-colors hover:text-[#C6A56B]" href="/">
+          <div className="mt-5 flex flex-col items-start gap-4 text-sm text-white/75">
+            <Link className="transition-colors hover:text-accent" href="/">
               Home
             </Link>
             <Link
-              className="transition-colors hover:text-[#C6A56B]"
+              className="transition-colors hover:text-accent"
               href="/listings"
             >
-              Curated Residences
+              Explore properties
             </Link>
             <Link
-              className="transition-colors hover:text-[#C6A56B]"
-              href="/sign-up?role=landlord"
+              className="transition-colors hover:text-accent"
+              href="/#about"
             >
-              List a Property
+              About KirayLink
+            </Link>
+            <Link
+              className="transition-colors hover:text-accent"
+              href="/#contact"
+            >
+              Contact
             </Link>
           </div>
         </div>
 
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-[#C6A56B]">
-            Private Access
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+            Your account
           </h2>
-          <div className="mt-5 flex flex-col items-start gap-3.5 text-sm text-[#EDE8DE]/75">
+          <div className="mt-5 flex flex-col items-start gap-4 text-sm text-white/75">
             <Link
-              className="transition-colors hover:text-[#C6A56B]"
+              className="transition-colors hover:text-accent"
               href="/sign-in"
             >
-              Member Sign In
+              Log in
             </Link>
             <Link
-              className="inline-flex items-center gap-1 transition-colors hover:text-[#C6A56B]"
+              className="inline-flex items-center gap-1 transition-colors hover:text-accent"
               href="/sign-up"
             >
-              Create Account
-              <ArrowUpRight className="h-3.5 w-3.5 text-[#C6A56B]" aria-hidden="true" />
+              Create account
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+            <Link
+              className="transition-colors hover:text-accent"
+              href="/sign-up?role=landlord"
+            >
+              List a property
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-[#174A3D]/50 bg-[#09201B]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-xs text-[#77766F] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <p>&copy; 2026 KirayLink. An exceptional standard of rental living.</p>
-          <p className="text-[11px] text-[#94938B]">Curated Residences · Transparent Terms</p>
+      <div className="border-t border-white/15">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <p>&copy; 2026 KirayLink. All rights reserved.</p>
+          <p>Thoughtful discovery · Transparent rental details</p>
         </div>
       </div>
     </footer>

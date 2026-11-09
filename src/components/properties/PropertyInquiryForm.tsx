@@ -91,19 +91,19 @@ export default function PropertyInquiryForm({
 
   if (isSubmitted) {
     return (
-      <div className="bg-white border border-[#174A3D]/30 rounded-2xl p-7 space-y-4 text-center shadow-xs">
-        <div className="w-12 h-12 rounded-full bg-[#EAF3F0] text-[#174A3D] mx-auto flex items-center justify-center shadow-xs">
+      <div className="space-y-4 rounded-2xl border border-status-success/30 bg-card p-7 text-center shadow-card">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-success-bg text-status-success shadow-sm">
           <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
         </div>
-        <h3 className="text-xl font-bold text-[#123B32] font-serif">
+        <h3 className="font-serif text-xl font-medium text-primary">
           Inquiry Successfully Sent
         </h3>
-        <p className="text-xs text-[#77766F] leading-relaxed">
+        <p className="text-xs leading-relaxed text-secondary">
           Your inquiry regarding <strong>{propertyTitle}</strong> has been forwarded directly to <strong>{landlord.name}</strong>.
         </p>
-        <div className="p-3.5 rounded-xl bg-[#F8F6F0] border border-[#EDE8DE] text-xs text-[#77766F] flex items-center justify-center gap-2">
-          <Clock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
-          <span>Expected response: <strong className="text-[#123B32]">{landlord.responseTime || "within 24 hours"}</strong></span>
+        <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted p-3.5 text-xs text-secondary">
+          <Clock className="h-4 w-4 text-accent-text" aria-hidden="true" />
+          <span>Expected response: <strong className="text-primary">{landlord.responseTime || "within 24 hours"}</strong></span>
         </div>
         <button
           type="button"
@@ -111,7 +111,7 @@ export default function PropertyInquiryForm({
             setIsSubmitted(false);
             setMessage("");
           }}
-          className="text-xs text-[#C6A56B] font-bold underline hover:text-[#123B32] transition-colors cursor-pointer"
+          className="cursor-pointer text-xs font-semibold text-accent-text underline transition-colors hover:text-primary"
         >
           Send another inquiry
         </button>
@@ -124,7 +124,7 @@ export default function PropertyInquiryForm({
       {errors.form && (
         <div
           role="alert"
-          className="p-3.5 rounded-xl bg-[#FBEFEF] border border-[#8B2627]/30 text-xs text-[#8B2627]"
+          className="rounded-xl border border-status-danger/30 bg-status-danger-bg p-3.5 text-xs text-status-danger"
         >
           {errors.form}
         </div>
@@ -135,7 +135,7 @@ export default function PropertyInquiryForm({
         name="name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="e.g. Alazar Mengistu"
+        placeholder="Enter your full name"
         error={errors.name}
         disabled={isSubmitting}
         required
@@ -148,7 +148,7 @@ export default function PropertyInquiryForm({
           name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="alazar@example.com"
+          placeholder="Enter your email address"
           error={errors.email}
           disabled={isSubmitting}
           required
@@ -160,7 +160,7 @@ export default function PropertyInquiryForm({
           name="phone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="+251 91 234 5678"
+          placeholder="Enter your phone number"
           error={errors.phone}
           disabled={isSubmitting}
           required
@@ -173,6 +173,7 @@ export default function PropertyInquiryForm({
         name="moveInDate"
         value={moveInDate}
         onChange={(e) => setMoveInDate(e.target.value)}
+        placeholder="Select your preferred move-in date"
         disabled={isSubmitting}
         helperText="Optional target occupancy date."
       />
@@ -180,7 +181,7 @@ export default function PropertyInquiryForm({
       <div className="space-y-1.5">
         <label
           htmlFor="inquiry-message"
-          className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+          className="block text-xs font-semibold uppercase tracking-wider text-primary"
         >
           Message to Landlord *
         </label>
@@ -190,14 +191,16 @@ export default function PropertyInquiryForm({
           rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Ask about viewing availability, lease terms, or deposit requirements..."
+          placeholder="Write your message"
+          aria-invalid={Boolean(errors.message)}
+          aria-describedby={errors.message ? "inquiry-message-error" : undefined}
           disabled={isSubmitting}
-          className={`w-full text-xs text-[#242622] bg-[#F8F6F0] border rounded-xl p-3.5 focus:outline-none focus:border-[#C6A56B] focus:ring-2 focus:ring-[#C6A56B]/25 transition-all resize-y ${
-            errors.message ? "border-[#8B2627]" : "border-[#EDE8DE]"
+          className={`w-full resize-y rounded-xl border bg-input p-3.5 text-sm text-primary placeholder:text-secondary focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/25 transition-all disabled:cursor-not-allowed disabled:bg-surface-muted ${
+            errors.message ? "border-status-danger focus:ring-status-danger/25" : "border-input-border"
           }`}
         />
         {errors.message && (
-          <p role="alert" className="text-xs text-[#8B2627]">
+          <p id="inquiry-message-error" role="alert" className="text-xs text-status-danger">
             {errors.message}
           </p>
         )}
@@ -206,23 +209,23 @@ export default function PropertyInquiryForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#123B32] py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#174A3D] transition-all shadow-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+        className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-button-primary py-3 text-xs font-semibold uppercase tracking-wider text-button-primary-text shadow-sm transition-colors hover:bg-button-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin text-[#C6A56B]" aria-hidden="true" />
+            <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
             <span>Transmitting Inquiry...</span>
           </>
         ) : (
           <>
-            <Send className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
+            <Send className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
             <span>Send Direct Inquiry</span>
           </>
         )}
       </button>
 
-      <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#77766F] pt-1">
-        <ShieldCheck className="w-3.5 h-3.5 text-[#174A3D]" aria-hidden="true" />
+      <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-secondary">
+        <ShieldCheck className="h-3.5 w-3.5 text-status-success" aria-hidden="true" />
         <span>Direct inquiry delivered to verified landlord: {landlord.name}</span>
       </div>
     </form>

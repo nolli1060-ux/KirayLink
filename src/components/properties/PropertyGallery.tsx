@@ -37,12 +37,12 @@ export default function PropertyGallery({
 
   if (displayImages.length === 0) {
     return (
-      <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-white border border-dashed border-[#EDE8DE] flex flex-col items-center justify-center p-8 text-center text-[#77766F] shadow-xs">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8F6F0] text-[#123B32] border border-[#C6A56B]/30 shadow-xs mb-3">
-          <Camera className="w-6 h-6 text-[#C6A56B]" aria-hidden="true" />
+      <div className="relative flex aspect-[16/10] w-full flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-border bg-card p-8 text-center text-secondary shadow-card">
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface-muted text-accent-text shadow-sm">
+          <Camera className="h-6 w-6" aria-hidden="true" />
         </div>
-        <p className="text-base font-bold text-[#123B32] font-serif">No Photographs Uploaded</p>
-        <p className="text-xs text-[#77766F] mt-1 max-w-sm">The landlord has not attached photography to this listing record yet.</p>
+        <p className="font-serif text-base font-medium text-primary">No photographs uploaded</p>
+        <p className="mt-1 max-w-sm text-xs text-secondary">The landlord has not attached photography to this listing record yet.</p>
       </div>
     );
   }
@@ -50,20 +50,20 @@ export default function PropertyGallery({
   const currentImage = displayImages[activeIdx] || displayImages[0];
 
   return (
-    <div className="space-y-4" role="region" aria-label="Property Photograph Gallery">
+    <div className="space-y-4" role="region" aria-label="Property photograph gallery">
       {/* Primary Display View */}
-      <div className="group relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-100 border border-[#EDE8DE] shadow-xs">
+      <div className="group relative aspect-[16/10] w-full overflow-hidden rounded-3xl border border-border bg-surface-muted shadow-card">
         <Image
           src={currentImage}
           alt={`${title} - Photograph ${activeIdx + 1} of ${displayImages.length}`}
           fill
-          priority
+          loading="eager"
           sizes="(max-width: 1200px) 100vw, 800px"
           className="object-cover transition-opacity duration-300"
         />
 
         {/* Counter Badge */}
-        <div className="absolute bottom-4 right-4 z-10 bg-[#123B32]/90 text-white border border-[#C6A56B]/30 text-xs px-3.5 py-1 rounded-full backdrop-blur-md font-semibold">
+        <div className="absolute bottom-4 right-4 z-10 rounded-full border border-white/25 bg-strong-surface/90 px-3.5 py-1.5 text-xs font-medium text-on-strong-surface backdrop-blur-md">
           {activeIdx + 1} / {displayImages.length} Photographs
         </div>
 
@@ -74,7 +74,7 @@ export default function PropertyGallery({
               type="button"
               onClick={handlePrev}
               aria-label="Previous photograph"
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[#123B32]/80 text-[#F8F6F0] border border-[#C6A56B]/30 backdrop-blur-md transition-all hover:bg-[#123B32] hover:text-[#C6A56B] active:scale-95 focus-visible:outline-2 focus-visible:outline-white cursor-pointer sm:opacity-0 sm:group-hover:opacity-100"
+              className="absolute left-3.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-strong-surface/80 text-on-strong-surface backdrop-blur-md transition-colors hover:bg-strong-surface hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -82,7 +82,7 @@ export default function PropertyGallery({
               type="button"
               onClick={handleNext}
               aria-label="Next photograph"
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[#123B32]/80 text-[#F8F6F0] border border-[#C6A56B]/30 backdrop-blur-md transition-all hover:bg-[#123B32] hover:text-[#C6A56B] active:scale-95 focus-visible:outline-2 focus-visible:outline-white cursor-pointer sm:opacity-0 sm:group-hover:opacity-100"
+              className="absolute right-3.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-strong-surface/80 text-on-strong-surface backdrop-blur-md transition-colors hover:bg-strong-surface hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -93,7 +93,7 @@ export default function PropertyGallery({
       {/* Thumbnail Bar */}
       {displayImages.length > 1 && (
         <div
-          className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2.5 sm:gap-3"
+          className="grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3 lg:grid-cols-8"
           role="tablist"
           aria-label="Gallery thumbnails"
         >
@@ -109,14 +109,15 @@ export default function PropertyGallery({
                 aria-label={`View photograph ${idx + 1}`}
                 className={`relative aspect-[16/10] rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
                   isActive
-                    ? "border-[#C6A56B] ring-2 ring-[#C6A56B]/30 opacity-100 scale-102"
-                    : "border-transparent opacity-65 hover:opacity-100"
+                    ? "border-accent ring-2 ring-focus/30 opacity-100"
+                    : "border-border opacity-65 hover:opacity-100"
                 }`}
               >
                 <Image
                   src={img}
                   alt={`Thumbnail ${idx + 1}`}
                   fill
+                  loading={idx === 0 ? "eager" : "lazy"}
                   sizes="140px"
                   className="object-cover"
                 />

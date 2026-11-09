@@ -146,20 +146,20 @@ export default function EditListingModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-3 backdrop-blur-xs sm:p-6"
     >
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-[#EDE8DE] overflow-hidden my-6">
+      <div className="relative my-6 max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-hidden rounded-3xl border border-card-border bg-card shadow-popover sm:max-h-[calc(100dvh-3rem)]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#EDE8DE] bg-[#F8F6F0]">
+        <div className="flex items-center justify-between border-b border-border bg-surface-muted px-5 py-4 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#123B32] text-[#C6A56B]">
-              <Edit3 className="w-5 h-5 text-[#C6A56B]" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent-text">
+              <Edit3 className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <h2 id="edit-modal-title" className="text-lg font-serif font-bold text-[#242622]">
+              <h2 id="edit-modal-title" className="font-serif text-lg font-medium text-primary sm:text-xl">
                 Edit Residence Details
               </h2>
-              <p className="text-xs text-[#77766F]">
+              <p className="mt-0.5 text-xs text-secondary">
                 Update rental terms, living specifications, or photographs.
               </p>
             </div>
@@ -167,15 +167,15 @@ export default function EditListingModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-[#77766F] hover:text-[#242622] hover:bg-[#EDE8DE] transition-colors cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-secondary transition-colors hover:bg-surface hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             aria-label="Close dialog"
           >
-            <X className="w-5 h-5" aria-hidden="true" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[78vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="max-h-[calc(100dvh-6rem)] space-y-6 overflow-y-auto p-5 sm:max-h-[calc(100dvh-9rem)] sm:p-7">
           {error && (
             <div
               role="alert"
@@ -198,7 +198,7 @@ export default function EditListingModal({
 
           {/* Section 1: Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#C6A56B]">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-text">
               1. Residence Overview
             </h3>
 
@@ -207,20 +207,20 @@ export default function EditListingModal({
               name="title"
               defaultValue={property.title}
               required
-              placeholder="e.g. Modern Two-Bedroom Apartment in Bole Atlas"
+              placeholder="Enter property title"
             />
 
             <Input
               label="Tagline"
               name="tagline"
               defaultValue={property.tagline}
-              placeholder="e.g. Spacious modern condo near transit and dining"
+              placeholder="Enter a short property summary"
             />
 
             <div className="space-y-1.5">
               <label
                 htmlFor="edit-description"
-                className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+                className="block text-xs font-semibold uppercase tracking-wider text-primary"
               >
                 Detailed Description *
               </label>
@@ -230,14 +230,15 @@ export default function EditListingModal({
                 defaultValue={property.description}
                 required
                 rows={4}
-                className="w-full text-xs text-[#242622] bg-[#F8F6F0] border border-[#EDE8DE] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#C6A56B] transition-colors resize-y"
+                placeholder="Describe the property, its features, and lease terms."
+                className="w-full resize-y rounded-xl border border-input-border bg-input p-3 text-sm text-primary placeholder:text-secondary focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/25 transition-colors"
               />
             </div>
           </div>
 
           {/* Section 2: Pricing & Specs */}
-          <div className="space-y-4 pt-4 border-t border-[#EDE8DE]">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#C6A56B]">
+          <div className="space-y-4 border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-text">
               2. Financials & Space Specifications
             </h3>
 
@@ -254,7 +255,7 @@ export default function EditListingModal({
               <div className="space-y-1.5">
                 <label
                   htmlFor="edit-propertyType"
-                  className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+                  className="block text-xs font-semibold uppercase tracking-wider text-primary"
                 >
                   Property Type *
                 </label>
@@ -262,7 +263,7 @@ export default function EditListingModal({
                   id="edit-propertyType"
                   name="propertyType"
                   defaultValue={property.propertyType}
-                  className="w-full h-10 text-xs text-[#242622] bg-[#F8F6F0] border border-[#EDE8DE] rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-[#C6A56B] transition-colors cursor-pointer"
+                  className="min-h-11 w-full rounded-xl border border-input-border bg-input px-3 text-sm text-primary focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/25 transition-colors cursor-pointer"
                 >
                   {PROPERTY_TYPES.map((t) => (
                     <option key={t} value={t}>
@@ -308,11 +309,11 @@ export default function EditListingModal({
                   name="furnished"
                   value="true"
                   defaultChecked={property.furnished}
-                  className="h-4 w-4 rounded border-[#EDE8DE] text-[#123B32] focus:ring-[#C6A56B]"
+                  className="h-4 w-4 rounded border-input-border text-accent focus:ring-focus"
                 />
                 <label
                   htmlFor="edit-furnished"
-                  className="text-xs font-semibold text-[#242622] cursor-pointer"
+                  className="text-xs font-semibold text-primary cursor-pointer"
                 >
                   Fully Furnished Residence
                 </label>
@@ -321,7 +322,7 @@ export default function EditListingModal({
               <div className="space-y-1.5">
                 <label
                   htmlFor="edit-status"
-                  className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+                  className="block text-xs font-semibold uppercase tracking-wider text-primary"
                 >
                   Availability Status *
                 </label>
@@ -329,7 +330,7 @@ export default function EditListingModal({
                   id="edit-status"
                   name="status"
                   defaultValue={property.status}
-                  className="w-full h-10 text-xs text-[#242622] bg-[#F8F6F0] border border-[#EDE8DE] rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-[#C6A56B] transition-colors cursor-pointer"
+                  className="min-h-11 w-full rounded-xl border border-input-border bg-input px-3 text-sm text-primary focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/25 transition-colors cursor-pointer"
                 >
                   <option value="available">Available for Rent</option>
                   <option value="pending">Pending Application</option>
@@ -340,8 +341,8 @@ export default function EditListingModal({
           </div>
 
           {/* Section 3: Location */}
-          <div className="space-y-4 pt-4 border-t border-[#EDE8DE]">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#C6A56B]">
+          <div className="space-y-4 border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-text">
               3. Location & Address
             </h3>
 
@@ -363,7 +364,7 @@ export default function EditListingModal({
               <div className="space-y-1.5">
                 <label
                   htmlFor="edit-neighborhood"
-                  className="block text-xs font-semibold uppercase tracking-wider text-[#242622]"
+                  className="block text-xs font-semibold uppercase tracking-wider text-primary"
                 >
                   District / Sub-city *
                 </label>
@@ -371,7 +372,7 @@ export default function EditListingModal({
                   id="edit-neighborhood"
                   name="neighborhood"
                   defaultValue={property.neighborhood}
-                  className="w-full h-10 text-xs text-[#242622] bg-[#F8F6F0] border border-[#EDE8DE] rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-[#C6A56B] transition-colors cursor-pointer"
+                  className="min-h-11 w-full rounded-xl border border-input-border bg-input px-3 text-sm text-primary focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/25 transition-colors cursor-pointer"
                 >
                   {DISTRICTS.map((d) => (
                     <option key={d} value={d}>
@@ -387,12 +388,13 @@ export default function EditListingModal({
               name="location"
               defaultValue={property.location}
               required
+              placeholder="Enter full address"
             />
           </div>
 
           {/* Section 4: Property Photographs */}
-          <div className="space-y-4 pt-4 border-t border-[#EDE8DE]">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#C6A56B]">
+          <div className="space-y-4 border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-text">
               4. Property Photographs
             </h3>
 
@@ -408,8 +410,8 @@ export default function EditListingModal({
           </div>
 
           {/* Section 5: Facilities & Amenities */}
-          <div className="space-y-3 pt-4 border-t border-[#EDE8DE]">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#C6A56B]">
+          <div className="space-y-3 border-t border-border pt-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-text">
               5. Facilities & Amenities
             </h3>
             <p className="text-xs text-[#77766F]">
@@ -424,15 +426,15 @@ export default function EditListingModal({
                     key={amenity}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
                       checked
-                        ? "bg-[#F5EFE4] border-[#C6A56B] text-[#123B32] font-semibold"
-                        : "bg-white border-[#EDE8DE] text-[#77766F] hover:bg-[#F8F6F0]"
+                        ? "bg-accent-soft border-accent text-primary font-semibold"
+                        : "bg-card border-border text-secondary hover:bg-surface-muted"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleAmenity(amenity)}
-                      className="h-3.5 w-3.5 rounded border-[#EDE8DE] text-[#123B32] focus:ring-[#C6A56B]"
+                      className="h-3.5 w-3.5 rounded border-input-border text-accent focus:ring-focus"
                     />
                     <span>{amenity}</span>
                   </label>
@@ -442,19 +444,19 @@ export default function EditListingModal({
           </div>
 
           {/* Submit Footer */}
-          <div className="pt-6 border-t border-[#EDE8DE] flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-3 border-t border-border pt-6">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-full border border-[#EDE8DE] bg-[#F8F6F0] px-5 py-2.5 text-xs font-semibold text-[#242622] hover:bg-white transition-colors cursor-pointer"
+              className="cursor-pointer rounded-full border border-border bg-surface-muted px-5 py-2.5 text-xs font-semibold text-primary transition-colors hover:bg-surface"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isUploadingPhotos || images.length === 0}
-              className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-7 py-2.5 text-xs font-semibold text-[#123B32] hover:bg-[#d4b57e] transition-colors shadow-xs disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-button-primary px-7 py-2.5 text-xs font-semibold text-button-primary-text shadow-xs transition-colors hover:bg-button-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <>

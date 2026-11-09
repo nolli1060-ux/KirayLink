@@ -3,10 +3,19 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, Building, Phone, ShieldAlert, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Building,
+  Loader2,
+  Mail,
+  Phone,
+  ShieldAlert,
+  User,
+} from "lucide-react";
 import { signUpAction } from "@/lib/auth";
 import type { UserRole } from "@/types/user";
 import Input from "@/components/ui/Input";
+import PasswordInput from "@/components/auth/PasswordInput";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -22,34 +31,41 @@ export default function SignUpForm() {
   const [company, setCompany] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((previous) => {
+      if (!previous[field]) return previous;
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+    setErrorMessage("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
-    if (!name.trim()) {
-      setErrorMessage("Please enter your full name.");
-      return;
+    const errors: Record<string, string> = {};
+    if (name.trim().length < 2) {
+      errors.name = "Enter your name using at least 2 characters.";
     }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrorMessage("Please enter a valid email address.");
-      return;
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = "Enter a valid email address.";
     }
-    if (!phone.trim()) {
-      setErrorMessage("Please provide a contact phone number.");
-      return;
-    }
+    if (!phone.trim()) errors.phone = "Enter a contact phone number.";
     if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters long.");
-      return;
+      errors.password = "Use at least 6 characters for your password.";
     }
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
-      return;
+      errors.confirmPassword = "The passwords do not match.";
     }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     setIsLoading(true);
 
@@ -65,7 +81,7 @@ export default function SignUpForm() {
       const result = await signUpAction(null, formData);
 
       if (!result.success) {
-        setErrorMessage(result.error || "Sign-up failed. Please review your details.");
+        setErrorMessage(result.error || "Registration failed. Please review your details.");
         setIsLoading(false);
       } else if (result.redirectUrl) {
         router.push(result.redirectUrl);
@@ -77,138 +93,175 @@ export default function SignUpForm() {
     }
   };
 
+  const accountTypes: { value: UserRole; title: string; detail: string }[] = [
+    {
+      value: "tenant",
+      title: "Prospective tenant",
+      detail: "Discover and rent residences",
+    },
+    {
+      value: "landlord",
+      title: "Property landlord",
+      detail: "List and manage properties",
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Account Type Selector Tabs */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wider text-[#242622] block">
-          Select Account Type
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedRole("tenant")}
-            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
-              role === "tenant"
-                ? "bg-[#123B32] text-white border-[#123B32] shadow-sm"
-                : "bg-white text-[#77766F] border-[#EDE8DE] hover:border-[#C6A56B]"
-            }`}
-          >
-            <div className="font-semibold text-xs">Prospective Tenant</div>
-            <div
-              className={`text-[11px] mt-0.5 ${
-                role === "tenant" ? "text-[#EDE8DE]/80" : "text-[#77766F]"
-              }`}
-            >
-              Discover & rent residences
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedRole("landlord")}
-            className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
-              role === "landlord"
-                ? "bg-[#123B32] text-white border-[#123B32] shadow-sm"
-                : "bg-white text-[#77766F] border-[#EDE8DE] hover:border-[#C6A56B]"
-            }`}
-          >
-            <div className="font-semibold text-xs">Property Landlord</div>
-            <div
-              className={`text-[11px] mt-0.5 ${
-                role === "landlord" ? "text-[#EDE8DE]/80" : "text-[#77766F]"
-              }`}
-            >
-              List & manage properties
-            </div>
-          </button>
+      <fieldset className="space-y-2.5">
+        <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          I am joining as a
+        </legend>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {accountTypes.map((account) => {
+            const isSelected = role === account.value;
+            return (
+              <button
+                key={account.value}
+                type="button"
+                aria-pressed={isSelected}
+                disabled={isLoading}
+                onClick={() => setSelectedRole(account.value)}
+                className={`min-h-[76px] rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isSelected
+                    ? "border-button-primary bg-button-primary text-button-primary-text"
+                    : "border-border bg-surface text-primary hover:border-accent"
+                }`}
+              >
+                <span className="block text-xs font-semibold">{account.title}</span>
+                <span
+                  className={`mt-1 block text-[11px] ${
+                    isSelected ? "text-button-primary-text/75" : "text-secondary"
+                  }`}
+                >
+                  {account.detail}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </fieldset>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        noValidate
+        aria-busy={isLoading}
+      >
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="flex items-start gap-2.5 rounded-xl border border-status-danger/30 bg-status-danger-bg p-3.5 text-xs text-status-danger"
           >
-            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-[#9E2A2B]" aria-hidden="true" />
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <Input
-          label="Full Legal Name"
+          label="Full name"
           type="text"
-          placeholder="e.g. Dawit Haile"
+          name="name"
+          id="sign-up-name"
+          autoComplete="name"
+          placeholder="Enter your full name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          icon={<User className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          onChange={(e) => {
+            setName(e.target.value);
+            clearFieldError("name");
+          }}
+          icon={<User className="h-4 w-4" aria-hidden="true" />}
+          error={fieldErrors.name}
           disabled={isLoading}
           required
         />
 
         <Input
-          label="Email Address"
+          label="Email address"
           type="email"
+          name="email"
+          id="sign-up-email"
           autoComplete="email"
-          placeholder="e.g. dawit@example.com"
+          placeholder="Enter your email address"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          icon={<Mail className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearFieldError("email");
+          }}
+          icon={<Mail className="h-4 w-4" aria-hidden="true" />}
+          error={fieldErrors.email}
           disabled={isLoading}
           required
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Phone Number"
+            label="Phone number"
             type="tel"
-            placeholder="+251 91 123 4567"
+            name="phone"
+            id="sign-up-phone"
+            autoComplete="tel"
+            placeholder="Enter your phone number"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            icon={<Phone className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              clearFieldError("phone");
+            }}
+            icon={<Phone className="h-4 w-4" aria-hidden="true" />}
+            error={fieldErrors.phone}
+            helperText="For tenant and landlord communication."
             disabled={isLoading}
             required
-            helperText="Used for tenant-landlord communication."
           />
 
-          {role === "landlord" ? (
+          {role === "landlord" && (
             <Input
-              label="Real Estate / Company Name"
+              label="Company name"
               type="text"
-              placeholder="e.g. Addis Property Group"
+              name="company"
+              id="sign-up-company"
+              autoComplete="organization"
+              placeholder="Enter company or agency name"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
-              icon={<Building className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+              icon={<Building className="h-4 w-4" aria-hidden="true" />}
+              helperText="Optional agency or business name."
               disabled={isLoading}
-              helperText="Optional agency branding."
             />
-          ) : (
-            <div className="hidden sm:block" />
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            label="Create Password"
-            type="password"
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <PasswordInput
+            label="Create password"
+            name="password"
+            id="sign-up-password"
             autoComplete="new-password"
-            placeholder="Min 6 characters"
+            placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              clearFieldError("password");
+              clearFieldError("confirmPassword");
+            }}
+            error={fieldErrors.password}
+            helperText="Use at least 6 characters."
             disabled={isLoading}
             required
           />
 
-          <Input
-            label="Confirm Password"
-            type="password"
+          <PasswordInput
+            label="Confirm password"
+            name="confirmPassword"
+            id="sign-up-confirm-password"
             autoComplete="new-password"
-            placeholder="Repeat password"
+            placeholder="Re-enter your password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              clearFieldError("confirmPassword");
+            }}
+            error={fieldErrors.confirmPassword}
             disabled={isLoading}
             required
           />
@@ -217,18 +270,28 @@ export default function SignUpForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-3 inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-full bg-[#C6A56B] px-6 py-3 text-sm font-semibold text-[#123B32] transition-colors hover:bg-[#d4b57e] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-xs"
+          aria-busy={isLoading}
+          className="mt-2 inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-button-primary px-6 py-3 text-sm font-semibold text-button-primary-text shadow-sm transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <span>{isLoading ? "Creating Account..." : "Complete Registration"}</span>
-          <ArrowRight className="w-4 h-4 text-[#123B32]" aria-hidden="true" />
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
+              <span>Creating account...</span>
+            </>
+          ) : (
+            <>
+              <span>Create account</span>
+              <ArrowRight className="h-4 w-4 text-accent" aria-hidden="true" />
+            </>
+          )}
         </button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#77766F]">
+      <div className="border-t border-border pt-5 text-center text-sm text-secondary">
         Already have an account?{" "}
         <Link
           href="/sign-in"
-          className="font-semibold text-[#123B32] hover:text-[#C6A56B] underline transition-colors"
+          className="font-semibold text-accent-text underline-offset-4 transition-colors hover:text-primary hover:underline"
         >
           Sign in
         </Link>

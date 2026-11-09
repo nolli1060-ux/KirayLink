@@ -1,5 +1,5 @@
 import type { ElementType } from "react";
-import Button from "@/components/ui/Button";
+import Link from "next/link";
 
 interface TenantEmptyStateProps {
   icon: ElementType;
@@ -17,20 +17,21 @@ export default function TenantEmptyState({
   actionHref = "/listings",
 }: TenantEmptyStateProps) {
   return (
-    <div className="text-center py-14 px-4 rounded-2xl border border-dashed border-[#EDE8DE] bg-[#F8F6F0] space-y-4">
-      <div className="w-14 h-14 rounded-full bg-white text-[#C6A56B] mx-auto flex items-center justify-center shadow-xs">
-        <Icon className="w-7 h-7 text-[#C6A56B]" aria-hidden="true" />
+    <div className="space-y-5 rounded-3xl border border-dashed border-border bg-card px-5 py-14 text-center shadow-card sm:px-8">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-border bg-accent-soft text-accent-text">
+        <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
-      <div className="space-y-1.5 max-w-sm mx-auto">
-        <h3 className="text-lg font-serif font-bold text-[#242622]">{title}</h3>
-        <p className="text-xs text-[#77766F] leading-relaxed font-sans">{description}</p>
+      <div className="mx-auto max-w-sm space-y-2">
+        <h3 className="font-serif text-xl font-medium text-primary">{title}</h3>
+        <p className="text-sm leading-6 text-secondary">{description}</p>
       </div>
       {actionText && actionHref && (
-        <div className="pt-2">
-          <Button href={actionHref} variant="outline" size="sm" className="rounded-full">
-            {actionText}
-          </Button>
-        </div>
+        <Link
+          href={actionHref}
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-button-primary px-5 text-sm font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          {actionText}
+        </Link>
       )}
     </div>
   );

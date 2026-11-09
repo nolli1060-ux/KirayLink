@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ShieldAlert, ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2, Mail, ShieldAlert } from "lucide-react";
 import { signInAction } from "@/lib/auth";
-import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import PasswordInput from "@/components/auth/PasswordInput";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -16,16 +16,33 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((previous) => {
+      if (!previous[field]) return previous;
+      const next = { ...previous };
+      delete next[field];
+      return next;
+    });
+    setErrorMessage("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
-    if (!email.trim() || !password) {
-      setErrorMessage("Please enter both your email and password.");
-      return;
+    const errors: Record<string, string> = {};
+    if (!email.trim()) {
+      errors.email = "Enter the email address for your account.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = "Enter a valid email address.";
     }
+    if (!password) errors.password = "Enter your password.";
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     setIsLoading(true);
 
@@ -54,58 +71,81 @@ export default function SignInForm() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5"
+        noValidate
+        aria-busy={isLoading}
+      >
         {errorMessage && (
           <div
             role="alert"
-            className="p-3.5 rounded-xl bg-[#FDF2F2] border border-[#9E2A2B]/30 flex items-start gap-2.5 text-xs text-[#9E2A2B]"
+            className="flex items-start gap-2.5 rounded-xl border border-status-danger/30 bg-status-danger-bg p-3.5 text-xs text-status-danger"
           >
-            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <Input
-          label="Email Address"
+          label="Email address"
           type="email"
           name="email"
+          id="sign-in-email"
           autoComplete="email"
-          placeholder="e.g. resident@kiraylink.com"
+          placeholder="Enter your email address"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          icon={<Mail className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearFieldError("email");
+          }}
+          icon={<Mail className="h-4 w-4" aria-hidden="true" />}
+          error={fieldErrors.email}
           disabled={isLoading}
+          required
         />
 
-        <Input
+        <PasswordInput
           label="Password"
-          type="password"
           name="password"
+          id="sign-in-password"
           autoComplete="current-password"
-          placeholder="••••••••"
+          placeholder="Enter your password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          icon={<Lock className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clearFieldError("password");
+          }}
+          error={fieldErrors.password}
           disabled={isLoading}
+          required
         />
 
-        <Button
+        <button
           type="submit"
-          variant="secondary"
-          size="md"
-          className="w-full mt-2 rounded-full cursor-pointer"
-          isLoading={isLoading}
+          disabled={isLoading}
+          aria-busy={isLoading}
+          className="mt-2 inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-button-primary px-6 py-3 text-sm font-semibold text-button-primary-text shadow-sm transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <span>Sign In to Account</span>
-          <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
-        </Button>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
+              <span>Signing in...</span>
+            </>
+          ) : (
+            <>
+              <span>Sign in</span>
+              <ArrowRight className="h-4 w-4 text-accent" aria-hidden="true" />
+            </>
+          )}
+        </button>
       </form>
 
-      <div className="text-center pt-2 text-xs text-[#77766F]">
-        Do not have an account yet?{" "}
+      <div className="border-t border-border pt-5 text-center text-sm text-secondary">
+        New to KirayLink?{" "}
         <Link
           href="/sign-up"
-          className="font-semibold text-[#123B32] hover:text-[#C6A56B] underline transition-colors"
+          className="font-semibold text-accent-text underline-offset-4 transition-colors hover:text-primary hover:underline"
         >
           Create an account
         </Link>

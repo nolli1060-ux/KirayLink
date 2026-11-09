@@ -49,8 +49,10 @@ export interface PropertyFiltersState {
   searchQuery: string;
   propertyType: string;
   neighborhood: string;
-  minPrice: number;
-  maxPrice: number;
+  minPrice: string;
+  maxPrice: string;
   bedrooms: string; // "any" | "1" | "2" | "3" | "4"
+  bathrooms: string;
+  availability: PropertyStatus | "all";
   sortBy: "featured" | "price-asc" | "price-desc" | "newest" | "size-desc";
 }

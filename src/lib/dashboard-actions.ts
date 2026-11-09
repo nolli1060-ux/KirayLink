@@ -636,12 +636,34 @@ export async function getAdminDashboardData() {
     totalUsers: userRoles.length,
     tenantCount: userRoles.filter((role) => role === "tenant").length,
     landlordCount: userRoles.filter((role) => role === "landlord").length,
+    adminCount: userRoles.filter((role) => role === "admin").length,
   };
 
   return {
     user: session,
-    allProperties,
-    allInquiries,
+    allProperties: allProperties.map((property) => ({
+      id: property.id,
+      title: property.title,
+      propertyType: property.propertyType,
+      neighborhood: property.neighborhood,
+      city: property.city,
+      price: property.price,
+      imageUrl: property.imageUrl,
+      status: property.status,
+      createdAt: property.createdAt,
+      landlord: {
+        name: property.landlord.name,
+        company: property.landlord.company,
+      },
+    })),
+    allInquiries: allInquiries.map((inquiry) => ({
+      id: inquiry.id,
+      propertyId: inquiry.propertyId,
+      propertyTitle: inquiry.propertyTitle,
+      message: inquiry.message,
+      status: inquiry.status,
+      createdAt: inquiry.createdAt,
+    })),
     stats,
   };
 }

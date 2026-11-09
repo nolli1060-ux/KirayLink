@@ -17,6 +17,16 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+export function normalizePriceInput(value: string): string {
+  if (!value) return "";
+
+  const [whole, fraction] = value.split(".");
+  const normalizedWhole = whole.replace(/^0+(?=\d)/, "");
+  return fraction === undefined
+    ? normalizedWhole
+    : `${normalizedWhole || "0"}.${fraction}`;
+}
+
 export function formatCare(care: number | undefined | null): string {
   const safeValue = Number(care ?? 0);
   return new Intl.NumberFormat("en-US", {

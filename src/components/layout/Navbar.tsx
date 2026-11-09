@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  Building2,
-  KeyRound,
+  ArrowUpRight,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -13,6 +12,15 @@ import {
 } from "lucide-react";
 import type { SessionUser } from "@/types/user";
 import { signOutAction } from "@/lib/auth";
+import BrandLogo from "@/components/layout/BrandLogo";
+import ThemeToggle from "@/components/layout/ThemeToggle";
+
+const navigationLinks = [
+  { label: "Home", href: "/" },
+  { label: "Explore properties", href: "/listings" },
+  { label: "About", href: "/#about" },
+  { label: "Contact", href: "/#contact" },
+];
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -49,103 +57,92 @@ export default function Navbar() {
     };
   }, [pathname]);
 
-  const getDashboardHref = () => {
+  const dashboardHref = () => {
     if (!user) return "/sign-in";
     if (user.role === "landlord") return "/landlord/dashboard";
     if (user.role === "admin") return "/admin/dashboard";
     return "/tenant/dashboard";
   };
 
-  const getDashboardLabel = () => {
-    if (user?.role === "landlord") return "Landlord Desk";
-    if (user?.role === "admin") return "Admin Console";
-    return "Tenant Dashboard";
+  const dashboardLabel = () => {
+    if (user?.role === "landlord") return "Landlord dashboard";
+    if (user?.role === "admin") return "Admin console";
+    return "Tenant dashboard";
   };
 
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#F8F6F0]/90 px-3 pt-3 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 px-4 backdrop-blur-xl sm:px-6">
       <nav
         aria-label="Main navigation"
-        className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 rounded-2xl bg-gradient-to-r from-[#123B32] via-[#144238] to-[#174A3D] px-4 py-3 text-white shadow-[0_12px_36px_-16px_rgba(18,59,50,0.55)] border border-[#C6A56B]/25 sm:px-6 lg:rounded-full lg:px-7"
+        className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-5 lg:px-2"
       >
-        <Link
+        <BrandLogo
           href="/"
+          showWordmark
           onClick={closeMenu}
-          className="flex items-center gap-2.5 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#C6A56B]"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#C6A56B] text-[#123B32] shadow-sm">
-            <Building2 className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <span className="text-lg font-bold tracking-tight text-white font-serif">
-            Kiray<span className="text-[#C6A56B]">Link</span>
-          </span>
-        </Link>
+          className="shrink-0"
+        />
 
-        <div className="hidden items-center gap-8 md:flex">
-          <Link
-            href="/"
-            className="text-sm font-medium tracking-wide text-[#EDE8DE]/80 transition-colors hover:text-[#C6A56B]"
-          >
-            Home
-          </Link>
-          <Link
-            href="/listings"
-            className="text-sm font-medium tracking-wide text-[#EDE8DE]/80 transition-colors hover:text-[#C6A56B]"
-          >
-            Find a Home
-          </Link>
+        <div className="hidden items-center gap-7 lg:flex">
+          {navigationLinks.map(({ label, href }) => (
+            <Link
+              key={label}
+              href={href}
+              className="text-sm font-medium text-secondary transition-colors hover:text-accent-text"
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
+          <ThemeToggle />
           {!loading && user ? (
             <>
               <Link
-                href={getDashboardHref()}
-                className="inline-flex items-center gap-2 rounded-full border border-[#C6A56B]/30 bg-white/5 px-4 py-2 text-sm font-semibold text-[#EDE8DE] backdrop-blur-xs transition-colors hover:border-[#C6A56B] hover:text-[#C6A56B]"
+                href={dashboardHref()}
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium text-primary transition-colors hover:border-accent hover:text-accent-text"
               >
-                <LayoutDashboard
-                  className="h-4 w-4 text-[#C6A56B]"
-                  aria-hidden="true"
-                />
-                <span>{getDashboardLabel()}</span>
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                <span>{dashboardLabel()}</span>
               </Link>
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-5 py-2.5 text-sm font-bold text-[#123B32] shadow-sm transition-all hover:bg-[#D8BD8E] active:scale-98 cursor-pointer"
-                  title="Sign Out"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full bg-button-primary px-4 text-sm font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
-                  <span>Sign Out</span>
+                  Sign out
                 </button>
               </form>
             </>
-          ) : (
+          ) : !loading ? (
             <>
               <Link
-                href="/sign-up?role=landlord"
-                className="rounded-full px-3 py-2 text-sm font-medium text-[#EDE8DE]/80 transition-colors hover:text-[#C6A56B]"
+                href="/sign-in"
+                className="rounded-full px-3 py-2 text-sm font-medium text-primary transition-colors hover:text-accent-text"
               >
-                List a Property
+                Log in
               </Link>
               <Link
-                href="/sign-in"
-                className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-5 py-2.5 text-sm font-bold text-[#123B32] shadow-sm transition-all hover:bg-[#D8BD8E] active:scale-98 cursor-pointer"
+                href="/sign-up"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full bg-button-primary px-5 text-sm font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover"
               >
-                <KeyRound className="h-4 w-4" aria-hidden="true" />
-                <span>Sign In</span>
+                Create account
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </>
-          )}
+          ) : null}
         </div>
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-[#C6A56B] hover:text-[#C6A56B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C6A56B] md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-primary transition-colors hover:border-accent hover:text-accent-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:hidden"
           aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMenuOpen}
+          aria-controls="mobile-navigation"
           onClick={() => setIsMenuOpen((open) => !open)}
         >
           {isMenuOpen ? (
@@ -156,60 +153,67 @@ export default function Navbar() {
         </button>
 
         {isMenuOpen && (
-          <div className="w-full border-t border-white/15 pt-3 md:hidden">
-            <div className="flex flex-col gap-1">
-              <Link
-                href="/"
-                onClick={closeMenu}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#EDE8DE]/90 hover:bg-white/10"
-              >
-                Home
-              </Link>
-              <Link
-                href="/listings"
-                onClick={closeMenu}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#EDE8DE]/90 hover:bg-white/10"
-              >
-                Browse Homes
-              </Link>
-              {!loading && user ? (
-                <>
-                  <Link
-                    href={getDashboardHref()}
-                    onClick={closeMenu}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#EDE8DE]/90 hover:bg-white/10"
-                  >
-                    {getDashboardLabel()}
-                  </Link>
-                  <form action={signOutAction} className="pt-1">
-                    <button
-                      type="submit"
-                      className="w-full text-left rounded-lg px-3 py-2.5 text-sm font-medium text-[#C6A56B] hover:bg-white/10"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/sign-up?role=landlord"
-                    onClick={closeMenu}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#EDE8DE]/90 hover:bg-white/10"
-                  >
-                    List a Property
-                  </Link>
-                  <Link
-                    href="/sign-in"
-                    onClick={closeMenu}
-                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#C6A56B] px-5 py-2.5 text-sm font-bold text-[#123B32]"
-                  >
-                    <KeyRound className="h-4 w-4" aria-hidden="true" />
-                    Sign In
-                  </Link>
-                </>
-              )}
+          <div
+            id="mobile-navigation"
+            className="absolute inset-x-3 top-[calc(100%+0.5rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-3 shadow-popover lg:hidden"
+          >
+            <div className="flex items-center justify-between rounded-xl px-3 py-2">
+              <span className="text-sm font-medium text-secondary">Appearance</span>
+              <ThemeToggle />
             </div>
+            <div className="my-2 border-t border-border" />
+            <div className="flex flex-col">
+              {navigationLinks.map(({ label, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  onClick={closeMenu}
+                  className="rounded-xl px-3 py-3 text-sm font-medium text-primary transition-colors hover:bg-surface-muted hover:text-accent-text"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+            <div className="my-2 border-t border-border" />
+            {!loading && user ? (
+              <>
+                <Link
+                  href={dashboardHref()}
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium text-primary hover:bg-surface-muted"
+                >
+                  <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                  {dashboardLabel()}
+                </Link>
+                <form action={signOutAction} className="mt-1">
+                  <button
+                    type="submit"
+                    className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-medium text-primary hover:bg-surface-muted"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    Sign out
+                  </button>
+                </form>
+              </>
+            ) : !loading ? (
+              <div className="grid grid-cols-2 gap-2 p-1">
+                <Link
+                  href="/sign-in"
+                  onClick={closeMenu}
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-border text-sm font-medium text-primary"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/sign-up"
+                  onClick={closeMenu}
+                  className="inline-flex min-h-11 items-center justify-center gap-1 rounded-full bg-button-primary px-3 text-sm font-semibold text-button-primary-text"
+                >
+                  Create account
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            ) : null}
           </div>
         )}
       </nav>

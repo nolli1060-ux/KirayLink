@@ -4,9 +4,16 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Trash2, ArrowUpRight, Edit3, PlusCircle } from "lucide-react";
+import {
+  ArrowUpRight,
+  Building2,
+  CheckCircle2,
+  Edit3,
+  Loader2,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import type { Property, PropertyStatus } from "@/types/property";
-import Badge from "@/components/ui/Badge";
 import EditListingModal from "@/components/landlord/EditListingModal";
 import {
   updatePropertyStatusAction,
@@ -19,6 +26,12 @@ interface MyListingsProps {
   onOpenAddModal: () => void;
 }
 
+const statusLabels: Record<PropertyStatus, string> = {
+  available: "Available",
+  pending: "Pending",
+  rented: "Rented",
+};
+
 export default function MyListings({
   initialProperties,
   onOpenAddModal,
@@ -27,21 +40,29 @@ export default function MyListings({
   const [properties, setProperties] = useState(initialProperties);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleStatusChange = async (
     propertyId: string,
     newStatus: PropertyStatus
   ) => {
     setBusyId(propertyId);
+    setActionError(null);
     try {
-      const res = await updatePropertyStatusAction(propertyId, newStatus);
-      if (res.success) {
-        setProperties((prev) =>
-          prev.map((p) =>
-            p.id === propertyId ? { ...p, status: newStatus } : p
-          )
-        );
+      const result = await updatePropertyStatusAction(propertyId, newStatus);
+      if (!result.success) {
+        setActionError(result.error || "Could not update the listing status.");
+        return;
       }
+      setProperties((previous) =>
+        previous.map((property) =>
+          property.id === propertyId
+            ? { ...property, status: newStatus }
+            : property
+        )
+      );
+    } catch {
+      setActionError("An unexpected error occurred while updating the listing.");
     } finally {
       setBusyId(null);
     }
@@ -52,181 +73,208 @@ export default function MyListings({
       return;
     }
     setBusyId(propertyId);
+    setActionError(null);
     try {
-      const res = await deletePropertyAction(propertyId);
-      if (res.success) {
-        setProperties((prev) => prev.filter((p) => p.id !== propertyId));
+      const result = await deletePropertyAction(propertyId);
+      if (!result.success) {
+        setActionError(result.error || "Could not delete the listing.");
+        return;
       }
+      setProperties((previous) =>
+        previous.filter((property) => property.id !== propertyId)
+      );
+    } catch {
+      setActionError("An unexpected error occurred while deleting the listing.");
     } finally {
       setBusyId(null);
     }
   };
 
-  if (properties.length === 0) {
-    return (
-      <div className="text-center py-14 px-4 rounded-2xl border border-dashed border-[#EDE8DE] bg-[#F8F6F0] space-y-4">
-        <div className="w-14 h-14 rounded-full bg-white text-[#C6A56B] mx-auto flex items-center justify-center shadow-xs">
-          <Building2 className="w-7 h-7 text-[#C6A56B]" aria-hidden="true" />
-        </div>
-        <div className="space-y-1.5 max-w-sm mx-auto">
-          <h3 className="text-lg font-serif font-bold text-[#242622]">
-            No properties listed yet
-          </h3>
-          <p className="text-xs text-[#77766F] leading-relaxed">
-            Upload photographs and add details to publish your first rental residence.
-          </p>
-        </div>
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={onOpenAddModal}
-            className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-6 py-2.5 text-xs font-semibold text-[#123B32] hover:bg-[#d4b57e] transition-colors shadow-xs cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4 text-[#123B32]" aria-hidden="true" />
-            <span>Add New Residence</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between text-xs text-[#77766F] pb-2 border-b border-[#EDE8DE]">
-          <span>
-            Showing <strong className="text-[#242622]">{properties.length}</strong> listed{" "}
-            {properties.length === 1 ? "residence" : "residences"}
-          </span>
+      {actionError && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger"
+        >
+          {actionError}
+        </div>
+      )}
+
+      {properties.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-card px-5 py-14 text-center shadow-card sm:px-8">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent-text">
+            <Building2 className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <h3 className="mt-5 font-serif text-2xl font-medium text-primary">
+            No properties listed yet
+          </h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-secondary">
+            Add your first residence to share its details with prospective tenants.
+          </p>
           <button
             type="button"
             onClick={onOpenAddModal}
-            className="inline-flex items-center gap-1.5 text-[#C6A56B] font-semibold hover:underline cursor-pointer"
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-button-primary px-5 text-sm font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            <PlusCircle className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-            <span>Add New Residence</span>
+            <Plus className="h-4 w-4 text-accent" aria-hidden="true" />
+            Add a residence
           </button>
         </div>
-
+      ) : (
         <div className="space-y-4">
-          {properties.map((prop) => {
-            const isBusy = busyId === prop.id;
-            const rawImage = prop.imageUrl || prop.images?.[0];
-            const displayImage = rawImage ? getSafeImageUrl(rawImage) : null;
+          <div className="flex flex-col gap-3 border-b border-border pb-3 text-sm text-secondary sm:flex-row sm:items-center sm:justify-between">
+            <p>
+              <span className="font-semibold text-primary">{properties.length}</span>{" "}
+              {properties.length === 1 ? "residence" : "residences"} in your listings
+            </p>
+            <button
+              type="button"
+              onClick={onOpenAddModal}
+              className="inline-flex min-h-9 w-fit items-center gap-2 text-xs font-semibold text-accent-text transition-colors hover:text-primary"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add a residence
+            </button>
+          </div>
 
-            return (
-              <div
-                key={prop.id}
-                className="bg-white border border-[#EDE8DE] rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs hover:border-[#C6A56B] transition-colors"
-              >
-                {/* Property Media & Basic Details */}
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden shrink-0 bg-[#F8F6F0] border border-[#EDE8DE]">
-                    {displayImage ? (
-                      <Image
-                        src={displayImage}
-                        alt={prop.title}
-                        fill
-                        sizes="96px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[#C6A56B]">
-                        <Building2 className="w-6 h-6 text-[#C6A56B]" aria-hidden="true" />
+          <div className="space-y-3">
+            {properties.map((property) => {
+              const isBusy = busyId === property.id;
+              const hasPendingAction = busyId !== null;
+              const rawImage = property.imageUrl || property.images?.[0];
+              const displayImage = rawImage ? getSafeImageUrl(rawImage) : null;
+
+              return (
+                <article
+                  key={property.id}
+                  className="overflow-hidden rounded-2xl border border-card-border bg-card shadow-card transition-colors hover:border-accent/60"
+                >
+                  <div className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
+                    <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-xl bg-surface-muted sm:aspect-square sm:w-32 lg:w-36">
+                      {displayImage ? (
+                        <Image
+                          src={displayImage}
+                          alt={property.title}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 144px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-accent-text">
+                          <Building2 className="h-7 w-7" aria-hidden="true" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-border bg-surface-muted px-2.5 py-1 text-[10px] font-medium text-secondary">
+                            {property.propertyType}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                              property.status === "available"
+                                ? "bg-status-success-bg text-status-success"
+                                : "bg-accent-soft text-accent-text"
+                            }`}
+                          >
+                            {property.status === "available" && (
+                              <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                            )}
+                            {statusLabels[property.status]}
+                          </span>
+                        </div>
+                        <h3 className="mt-2 truncate font-serif text-xl font-medium text-primary">
+                          {property.title}
+                        </h3>
+                        <p className="mt-1 truncate text-sm text-secondary">
+                          {property.location}, {property.neighborhood}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-primary">
+                          {formatPrice(property.price, "ETB ", property.rentPeriod)}
+                          <span className="ml-2 font-sans text-xs font-normal text-secondary">
+                            · {property.bedrooms} bed · {property.bathrooms} bath ·{" "}
+                            {formatCare(property.care)} m²
+                          </span>
+                        </p>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="navy" size="sm" className="rounded-full px-2.5">
-                        {prop.propertyType}
-                      </Badge>
-                      <Badge
-                        variant={prop.status === "available" ? "success" : "neutral"}
-                        size="sm"
-                        className="rounded-full px-2.5"
-                      >
-                        {prop.status}
-                      </Badge>
+                      <div className="flex flex-col gap-2 border-t border-border pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                        <label className="flex items-center gap-2 text-xs text-secondary">
+                          <span>Listing status</span>
+                          <select
+                            value={property.status}
+                            disabled={hasPendingAction}
+                            aria-label={`Listing status for ${property.title}`}
+                            onChange={(event) =>
+                              handleStatusChange(
+                                property.id,
+                                event.target.value as PropertyStatus
+                              )
+                            }
+                            className="min-h-9 rounded-lg border border-input-border bg-input-bg px-3 text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+                          >
+                            {Object.entries(statusLabels).map(([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                          {isBusy && (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-accent-text" aria-label="Saving" />
+                          )}
+                        </label>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingProperty(property)}
+                            disabled={hasPendingAction}
+                            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-primary transition-colors hover:border-accent/60 hover:bg-surface-muted disabled:opacity-50"
+                          >
+                            <Edit3 className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                            Edit
+                          </button>
+                          <Link
+                            href={`/properties/${property.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-primary transition-colors hover:border-accent/60 hover:bg-surface-muted"
+                          >
+                            View listing
+                            <ArrowUpRight className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                          </Link>
+                          <button
+                            type="button"
+                            disabled={hasPendingAction}
+                            onClick={() => handleDelete(property.id)}
+                            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-status-danger/30 px-3 text-xs font-semibold text-status-danger transition-colors hover:bg-status-danger-bg disabled:opacity-50"
+                            aria-label={`Delete ${property.title}`}
+                          >
+                            {isBusy ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            )}
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
-
-                    <h3 className="text-sm font-semibold text-[#242622] truncate">
-                      {prop.title}
-                    </h3>
-
-                    <p className="text-xs text-[#77766F] truncate">
-                      {prop.location}, {prop.neighborhood}
-                    </p>
-
-                    <div className="text-xs font-serif font-bold text-[#123B32]">
-                      {formatPrice(prop.price, "ETB ", prop.rentPeriod)}
-                      <span className="text-[11px] font-sans font-normal text-[#77766F] ml-2">
-                        · {prop.bedrooms} Bed · {prop.bathrooms} Bath · {formatCare(prop.care)} m²
-                      </span>
-                    </div>
                   </div>
-                </div>
-
-                {/* Listing Action Controls */}
-                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-t-0 border-[#EDE8DE]">
-                  {/* Status toggle selector */}
-                  <select
-                    value={prop.status}
-                    disabled={isBusy}
-                    onChange={(e) =>
-                      handleStatusChange(prop.id, e.target.value as PropertyStatus)
-                    }
-                    className="h-8 text-xs font-semibold bg-[#F8F6F0] border border-[#EDE8DE] rounded-full px-3 text-[#242622] focus:outline-none focus:ring-2 focus:ring-[#C6A56B] cursor-pointer"
-                  >
-                    <option value="available">Available</option>
-                    <option value="pending">Pending</option>
-                    <option value="rented">Rented</option>
-                  </select>
-
-                  {/* Edit button */}
-                  <button
-                    type="button"
-                    onClick={() => setEditingProperty(prop)}
-                    className="inline-flex items-center gap-1 rounded-full border border-[#EDE8DE] bg-[#F8F6F0] px-3 py-1.5 text-xs font-semibold text-[#242622] hover:bg-white hover:border-[#C6A56B] transition-colors"
-                  >
-                    <Edit3 className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-                    <span>Edit</span>
-                  </button>
-
-                  {/* Public Link */}
-                  <Link
-                    href={`/properties/${prop.id}`}
-                    target="_blank"
-                    className="inline-flex items-center gap-1 rounded-full border border-[#EDE8DE] bg-[#F8F6F0] px-3 py-1.5 text-xs font-semibold text-[#242622] hover:bg-white hover:border-[#C6A56B] transition-colors"
-                  >
-                    <span>View</span>
-                    <ArrowUpRight className="w-3 h-3 text-[#C6A56B]" aria-hidden="true" />
-                  </Link>
-
-                  {/* Delete button */}
-                  <button
-                    type="button"
-                    disabled={isBusy}
-                    onClick={() => handleDelete(prop.id)}
-                    className="p-1.5 rounded-full text-[#77766F] hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
-                    title="Delete property"
-                    aria-label="Delete property"
-                  >
-                    <Trash2 className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                </article>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Edit Listing Modal */}
       {editingProperty && (
         <EditListingModal
           property={editingProperty}
-          isOpen={Boolean(editingProperty)}
+          isOpen
           onClose={() => setEditingProperty(null)}
           onSuccess={() => {
             setEditingProperty(null);

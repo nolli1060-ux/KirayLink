@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
+  ArrowUpRight,
   Building2,
-  MessageSquare,
-  ShieldCheck,
-  User,
-  PlusCircle,
+  CheckCircle2,
+  Mail,
+  MessageSquareText,
+  Plus,
+  UserRound,
 } from "lucide-react";
 import type { Property } from "@/types/property";
 import type { Inquiry } from "@/types/inquiry";
 import type { SessionUser } from "@/types/user";
-import Badge from "@/components/ui/Badge";
 import MyListings from "@/components/landlord/MyListings";
 import LandlordInquiries from "@/components/landlord/LandlordInquiries";
 import AddListingModal from "@/components/landlord/AddListingModal";
@@ -23,210 +25,268 @@ interface LandlordDashboardClientProps {
   inquiries: Inquiry[];
 }
 
+type DashboardTab = "listings" | "inquiries" | "profile";
+
+const navigation: {
+  id: DashboardTab;
+  label: string;
+  icon: typeof Building2;
+}[] = [
+  { id: "listings", label: "My residences", icon: Building2 },
+  { id: "inquiries", label: "Tenant inquiries", icon: MessageSquareText },
+  { id: "profile", label: "Profile & contact", icon: UserRound },
+];
+
 export default function LandlordDashboardClient({
   user,
   myProperties,
   inquiries,
 }: LandlordDashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<"listings" | "inquiries" | "profile">("listings");
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<DashboardTab>("listings");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const activeCount = myProperties.filter((p) => p.status === "available").length;
-  const unavailableCount = myProperties.filter((p) => p.status !== "available").length;
-  const pendingInquiriesCount = inquiries.filter((i) => i.status === "pending").length;
+  const activeCount = myProperties.filter((property) => property.status === "available").length;
+  const unavailableCount = myProperties.length - activeCount;
+  const pendingInquiriesCount = inquiries.filter(
+    (inquiry) => inquiry.status === "pending"
+  ).length;
+
+  const contentTitle =
+    activeTab === "listings"
+      ? "Your residences"
+      : activeTab === "inquiries"
+        ? "Tenant inquiries"
+        : "Your profile";
+  const contentDescription =
+    activeTab === "listings"
+      ? "Manage the listings associated with your account."
+      : activeTab === "inquiries"
+        ? "Review tenant messages and keep inquiry statuses current."
+        : "Manage your account and contact information.";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
-      {/* Header and Welcome */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#EDE8DE]">
-        <div>
-          <div className="flex items-center gap-2">
-            <Badge variant="navy" className="rounded-full px-3 py-1 font-medium">
-              Landlord Desk
-            </Badge>
-            <span className="text-xs text-[#77766F]">Verified Property Manager</span>
+    <div className="min-h-screen bg-background text-primary">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <header className="mb-8 flex flex-col gap-5 border-b border-border pb-7 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-secondary">
+              <CheckCircle2 className="h-3.5 w-3.5 text-status-success" aria-hidden="true" />
+              Landlord workspace
+            </div>
+            <h1 className="font-serif text-3xl font-medium tracking-tight text-primary sm:text-4xl lg:text-5xl">
+              Welcome back, {user.name}.
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">
+              {user.company ? `${user.company} · ` : ""}
+              Manage your residences and conversations with prospective tenants.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#242622] tracking-tight mt-2">
-            Welcome back, {user.name}
-          </h1>
-          <p className="text-xs text-[#77766F] mt-1">
-            {user.company ? `${user.company} · ` : ""}
-            Manage your residences, edit listings, and respond to tenant inquiries.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-5 py-2.5 text-xs font-semibold text-[#123B32] hover:bg-[#d4b57e] transition-colors shadow-xs cursor-pointer"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-button-primary px-5 text-sm font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            <PlusCircle className="w-4 h-4 text-[#123B32]" aria-hidden="true" />
-            <span>Add New Residence</span>
+            <Plus className="h-4 w-4 text-accent" aria-hidden="true" />
+            Add a residence
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </button>
-          <div className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-[#174A3D] bg-[#EAF3F0] border border-[#174A3D]/20 px-3.5 py-2 rounded-full">
-            <ShieldCheck className="w-4 h-4 text-[#174A3D]" aria-hidden="true" />
-            <span>Server Verified</span>
-          </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Metric Highlights */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          onClick={() => setActiveTab("listings")}
-          className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-            activeTab === "listings"
-              ? "bg-white border-[#C6A56B] shadow-[0_12px_32px_-12px_rgba(198,165,107,0.25)] ring-1 ring-[#C6A56B]/30"
-              : "bg-white border-[#EDE8DE] hover:border-[#C6A56B]/40 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]"
-          }`}
+        <section
+          aria-label="Landlord dashboard overview"
+          className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4"
         >
-          <div className="flex items-center justify-between text-[#C6A56B] mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Total Properties
-            </span>
-            <Building2 className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#242622]">
-            {myProperties.length}
-          </div>
-          <p className="text-[11px] text-[#77766F] mt-1">
-            {activeCount} active · {unavailableCount} unavailable
-          </p>
-        </div>
-
-        <div
-          onClick={() => setActiveTab("listings")}
-          className="p-5 rounded-2xl border border-[#EDE8DE] bg-white transition-all cursor-pointer hover:border-[#C6A56B]/40 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]"
-        >
-          <div className="flex items-center justify-between text-[#174A3D] mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Active Listings
-            </span>
-            <ShieldCheck className="w-4 h-4 text-[#174A3D]" aria-hidden="true" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#242622]">
-            {activeCount}
-          </div>
-          <p className="text-[11px] text-[#77766F] mt-1">
-            Visible on public listings
-          </p>
-        </div>
-
-        <div
-          onClick={() => setActiveTab("inquiries")}
-          className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-            activeTab === "inquiries"
-              ? "bg-white border-[#C6A56B] shadow-[0_12px_32px_-12px_rgba(198,165,107,0.25)] ring-1 ring-[#C6A56B]/30"
-              : "bg-white border-[#EDE8DE] hover:border-[#C6A56B]/40 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]"
-          }`}
-        >
-          <div className="flex items-center justify-between text-[#C6A56B] mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Received Inquiries
-            </span>
-            <MessageSquare className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />
-          </div>
-          <div className="text-2xl font-serif font-bold text-[#242622]">
-            {inquiries.length}
-          </div>
-          <p className="text-[11px] text-[#77766F] mt-1">
-            {pendingInquiriesCount} awaiting review
-          </p>
-        </div>
-
-        <div
-          onClick={() => setActiveTab("profile")}
-          className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-            activeTab === "profile"
-              ? "bg-white border-[#C6A56B] shadow-[0_12px_32px_-12px_rgba(198,165,107,0.25)] ring-1 ring-[#C6A56B]/30"
-              : "bg-white border-[#EDE8DE] hover:border-[#C6A56B]/40 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]"
-          }`}
-        >
-          <div className="flex items-center justify-between text-[#123B32] mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              Profile & Agency
-            </span>
-            <User className="w-4 h-4 text-[#123B32]" aria-hidden="true" />
-          </div>
-          <div className="text-sm font-semibold text-[#242622] truncate mt-1">
-            {user.company || user.name}
-          </div>
-          <p className="text-[11px] text-[#77766F] mt-1">
-            {user.phone || "No phone added"}
-          </p>
-        </div>
-      </div>
-
-      {/* Tabs navigation */}
-      <div className="border-b border-[#EDE8DE]">
-        <nav className="flex space-x-6" aria-label="Landlord Dashboard Tabs">
-          <button
-            type="button"
+          <SummaryCard
+            label="Total properties"
+            value={myProperties.length}
+            note={`${activeCount} active · ${unavailableCount} unavailable`}
+            icon={Building2}
+            selected={activeTab === "listings"}
             onClick={() => setActiveTab("listings")}
-            className={`py-3 px-1 border-b-2 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === "listings"
-                ? "border-[#123B32] text-[#123B32]"
-                : "border-transparent text-[#77766F] hover:text-[#123B32]"
-            }`}
-          >
-            <Building2 className="w-4 h-4" aria-hidden="true" />
-            <span>My Properties</span>
-            <span className="text-[10px] bg-[#F8F6F0] border border-[#EDE8DE] px-2 py-0.5 rounded-full text-[#242622]">
-              {myProperties.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("inquiries")}
-            className={`py-3 px-1 border-b-2 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === "inquiries"
-                ? "border-[#123B32] text-[#123B32]"
-                : "border-transparent text-[#77766F] hover:text-[#123B32]"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" aria-hidden="true" />
-            <span>Tenant Inquiries</span>
-            <span className="text-[10px] bg-[#F8F6F0] border border-[#EDE8DE] px-2 py-0.5 rounded-full text-[#242622]">
-              {inquiries.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("profile")}
-            className={`py-3 px-1 border-b-2 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === "profile"
-                ? "border-[#123B32] text-[#123B32]"
-                : "border-transparent text-[#77766F] hover:text-[#123B32]"
-            }`}
-          >
-            <User className="w-4 h-4" aria-hidden="true" />
-            <span>Profile & Contact</span>
-          </button>
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      <div className="pt-2">
-        {activeTab === "listings" ? (
-          <MyListings
-            initialProperties={myProperties}
-            onOpenAddModal={() => setIsAddModalOpen(true)}
           />
-        ) : activeTab === "inquiries" ? (
-          <LandlordInquiries initialInquiries={inquiries} />
-        ) : (
-          <ProfileEditor user={user} />
-        )}
+          <SummaryCard
+            label="Active listings"
+            value={activeCount}
+            note="Available for rent"
+            icon={CheckCircle2}
+            selected={false}
+            onClick={() => setActiveTab("listings")}
+          />
+          <SummaryCard
+            label="Received inquiries"
+            value={inquiries.length}
+            note={`${pendingInquiriesCount} awaiting review`}
+            icon={MessageSquareText}
+            selected={activeTab === "inquiries"}
+            onClick={() => setActiveTab("inquiries")}
+          />
+          <SummaryCard
+            label="Profile & contact"
+            value={user.company || user.name}
+            note={user.phone || "Add a contact number"}
+            icon={UserRound}
+            selected={activeTab === "profile"}
+            onClick={() => setActiveTab("profile")}
+            isText
+          />
+        </section>
+
+        <div className="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
+          <aside className="rounded-3xl border border-card-border bg-card p-3 shadow-card lg:sticky lg:top-24">
+            <p className="px-3 pb-2 pt-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-secondary">
+              Management
+            </p>
+            <nav
+              aria-label="Landlord dashboard navigation"
+              className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible"
+            >
+              {navigation.map(({ id, label, icon: Icon }) => {
+                const isActive = activeTab === id;
+                const count =
+                  id === "listings"
+                    ? myProperties.length
+                    : id === "inquiries"
+                      ? inquiries.length
+                      : null;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={() => setActiveTab(id)}
+                    className={`inline-flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:w-full ${
+                      isActive
+                        ? "bg-accent-soft text-primary"
+                        : "text-secondary hover:bg-surface-muted hover:text-primary"
+                    }`}
+                  >
+                    <Icon
+                      className={`h-4 w-4 shrink-0 ${isActive ? "text-accent-text" : ""}`}
+                      aria-hidden="true"
+                    />
+                    <span className="whitespace-nowrap">{label}</span>
+                    {count !== null && (
+                      <span className="ml-auto rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] text-secondary">
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="mt-3 hidden border-t border-border pt-3 lg:block">
+              <a
+                href={`mailto:${user.email}`}
+                className="inline-flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-secondary transition-colors hover:bg-surface-muted hover:text-primary"
+              >
+                <Mail className="h-4 w-4 text-accent-text" aria-hidden="true" />
+                Contact email
+              </a>
+            </div>
+            <div className="mt-3 hidden rounded-2xl border border-border bg-surface-muted p-4 lg:block">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">
+                Account
+              </p>
+              <p className="mt-2 break-all text-xs leading-5 text-primary">{user.email}</p>
+              {user.company && (
+                <p className="mt-1 truncate text-xs text-secondary">{user.company}</p>
+              )}
+            </div>
+          </aside>
+
+          <main className="min-w-0">
+            <section className="mb-6 flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-accent-text">
+                  Landlord desk
+                </p>
+                <h2 className="mt-1 font-serif text-2xl font-medium text-primary sm:text-3xl">
+                  {contentTitle}
+                </h2>
+                <p className="mt-1 text-sm text-secondary">{contentDescription}</p>
+              </div>
+              {activeTab === "listings" && myProperties.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="inline-flex min-h-9 w-fit items-center gap-1.5 text-xs font-semibold text-accent-text transition-colors hover:text-primary"
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  Add listing
+                </button>
+              )}
+            </section>
+
+            {activeTab === "listings" ? (
+              <MyListings
+                key={JSON.stringify(myProperties)}
+                initialProperties={myProperties}
+                onOpenAddModal={() => setIsAddModalOpen(true)}
+              />
+            ) : activeTab === "inquiries" ? (
+              <LandlordInquiries
+                key={inquiries.map(({ id, status }) => `${id}:${status}`).join("|")}
+                initialInquiries={inquiries}
+              />
+            ) : (
+              <ProfileEditor user={user} />
+            )}
+          </main>
+        </div>
       </div>
 
-      {/* Add Listing Modal */}
       <AddListingModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => router.refresh()}
       />
     </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  note,
+  icon: Icon,
+  selected,
+  onClick,
+  isText = false,
+}: {
+  label: string;
+  value: number | string;
+  note: string;
+  icon: typeof Building2;
+  selected: boolean;
+  onClick: () => void;
+  isText?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`min-h-[124px] rounded-2xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:p-5 ${
+        selected
+          ? "border-accent bg-card shadow-card"
+          : "border-card-border bg-card hover:border-accent/60"
+      }`}
+    >
+      <span className="flex items-center justify-between gap-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">
+          {label}
+        </span>
+        <Icon className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
+      </span>
+      <span
+        className={`mt-3 block truncate font-serif font-medium text-primary ${
+          isText ? "text-lg sm:text-xl" : "text-3xl"
+        }`}
+      >
+        {value}
+      </span>
+      <span className="mt-1 block truncate text-xs text-secondary">{note}</span>
+    </button>
   );
 }

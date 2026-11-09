@@ -55,27 +55,32 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
   };
 
   return (
-    <div className="max-w-2xl bg-white border border-[#EDE8DE] rounded-2xl p-6 sm:p-8 shadow-[0_4px_20px_-8px_rgba(18,59,50,0.06)]">
-      <div className="mb-6 border-b border-[#EDE8DE] pb-4">
-        <h2 className="text-lg font-serif font-bold text-[#242622]">Account Profile Details</h2>
-        <p className="text-xs text-[#77766F] mt-1 font-sans">
-          Manage your personal information, contact phone, and public agency profile.
+    <div className="max-w-3xl rounded-3xl border border-card-border bg-card p-5 shadow-card sm:p-8">
+      <div className="mb-6 border-b border-border pb-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-text">
+          Personal details
+        </p>
+        <h2 className="mt-1 font-serif text-xl font-medium text-primary">
+          Account profile
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-secondary">
+          Review your name and contact details associated with your account.
         </p>
       </div>
 
       {statusMessage && (
         <div
-          role="alert"
-          className={`flex items-start gap-2.5 p-3.5 rounded-xl text-xs mb-5 ${
+          role={statusMessage.type === "success" ? "status" : "alert"}
+          className={`mb-5 flex items-start gap-2.5 rounded-xl border p-3.5 text-sm ${
             statusMessage.type === "success"
-              ? "bg-[#EAF3F0] border border-[#174A3D]/30 text-[#174A3D]"
-              : "bg-[#FDF2F2] border border-[#9E2A2B]/30 text-[#9E2A2B]"
+              ? "border-status-success/30 bg-status-success-bg text-status-success"
+              : "border-status-danger/30 bg-status-danger-bg text-status-danger"
           }`}
         >
           {statusMessage.type === "success" ? (
-            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-[#174A3D]" aria-hidden="true" />
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           ) : (
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#9E2A2B]" aria-hidden="true" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           )}
           <span>{statusMessage.text}</span>
         </div>
@@ -83,64 +88,72 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Full Legal Name"
+          label="Full name"
           type="text"
+          autoComplete="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          icon={<User className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          icon={<User className="h-4 w-4" aria-hidden="true" />}
           disabled={isLoading}
           required
         />
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#242622]">
-            Email Address (Read-only)
+          <label
+            htmlFor="profile-email"
+            className="block text-xs font-semibold uppercase tracking-[0.14em] text-primary"
+          >
+            Email address
           </label>
           <input
+            id="profile-email"
             type="email"
             value={user.email}
+            placeholder="Enter your email address"
             disabled
-            className="w-full rounded-xl border border-[#EDE8DE] bg-[#F8F6F0] px-3.5 py-2.5 text-xs text-[#77766F] cursor-not-allowed"
+            className="w-full cursor-not-allowed rounded-xl border border-input-border bg-surface-muted px-3.5 py-2.5 text-sm text-secondary"
           />
-          <p className="text-[11px] text-[#77766F]">
+          <p className="text-xs leading-5 text-secondary">
             Account email cannot be modified directly for security reasons.
           </p>
         </div>
 
         <Input
-          label="Contact Phone Number"
+          label="Contact phone number"
           type="tel"
+          autoComplete="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="+251 91 123 4567"
-          icon={<Phone className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+          placeholder="Enter your phone number"
+          icon={<Phone className="h-4 w-4" aria-hidden="true" />}
           disabled={isLoading}
-          helperText="Displayed to prospective tenants on your verified listings."
+          helperText="Used for communication about your rental inquiries."
         />
 
         {user.role === "landlord" && (
           <Input
-            label="Agency / Real Estate Company Name"
+            label="Agency / company name"
             type="text"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="e.g. Bole Luxury Estates"
-            icon={<Building className="w-4 h-4 text-[#C6A56B]" aria-hidden="true" />}
+            placeholder="Enter company or agency name"
+            icon={<Building className="h-4 w-4" aria-hidden="true" />}
             disabled={isLoading}
-            helperText="Optional branding shown on property cards and detail headers."
+            helperText="Optional agency or business name."
           />
         )}
 
-        <div className="pt-4 flex items-center justify-end">
+        <div className="flex items-center justify-end border-t border-border pt-5">
           <button
             type="submit"
             disabled={isLoading}
-            className="inline-flex items-center gap-2 rounded-full bg-[#C6A56B] px-6 py-2.5 text-xs font-semibold text-[#123B32] hover:bg-[#d4b57e] transition-colors shadow-xs disabled:opacity-60 cursor-pointer"
+            aria-busy={isLoading}
+            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-button-primary px-6 text-sm font-semibold text-button-primary-text shadow-sm transition-colors hover:bg-button-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-[#123B32]" aria-hidden="true" />
-                <span>Saving Profile...</span>
+                <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden="true" />
+                <span>Saving profile...</span>
               </>
             ) : (
               <span>Save Changes</span>

@@ -1,6 +1,6 @@
 import type { Property, PropertyStatus } from "@/types/property";
 import { getDatabase } from "@/lib/db";
-import { properties } from "@/lib/schema";
+import { properties, savedProperties } from "@/lib/schema";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 export async function getAllActiveProperties(): Promise<Property[]> {
@@ -28,6 +28,14 @@ export async function getActivePropertyById(
     ...rows[0].data,
     status: rows[0].status,
   };
+}
+
+export async function getSavedPropertyIds(tenantId: string): Promise<string[]> {
+  const rows = await getDatabase()
+    .select({ propertyId: savedProperties.propertyId })
+    .from(savedProperties)
+    .where(eq(savedProperties.tenantId, tenantId));
+  return rows.map((row) => row.propertyId);
 }
 
 export async function createPropertyRecord(property: Property): Promise<void> {

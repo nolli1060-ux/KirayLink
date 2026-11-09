@@ -24,7 +24,10 @@ export default function TenantDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="py-24 max-w-7xl mx-auto px-4 text-center text-[#77766F] font-sans">
+        <div
+          role="status"
+          className="mx-auto max-w-7xl px-4 py-24 text-center text-sm text-secondary"
+        >
           Loading your tenant dashboard...
         </div>
       }

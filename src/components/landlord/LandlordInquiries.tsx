@@ -3,16 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  MessageSquare,
-  Clock,
-  Mail,
-  Phone,
-  CheckCircle2,
-  Calendar,
   ArrowUpRight,
+  CalendarDays,
+  Check,
+  Clock3,
+  Mail,
+  MessageSquareText,
+  Phone,
 } from "lucide-react";
 import type { Inquiry, InquiryStatus } from "@/types/inquiry";
-import Badge from "@/components/ui/Badge";
 import { updateInquiryStatusAction } from "@/lib/dashboard-actions";
 import { formatPrice } from "@/lib/utils";
 
@@ -20,181 +19,207 @@ interface LandlordInquiriesProps {
   initialInquiries: Inquiry[];
 }
 
+function InquiryStatus({ status }: { status: InquiryStatus }) {
+  const styles: Record<InquiryStatus, string> = {
+    pending: "bg-accent-soft text-accent-text",
+    reviewed: "bg-surface-muted text-secondary",
+    responded: "bg-status-success-bg text-status-success",
+  };
+  const labels: Record<InquiryStatus, string> = {
+    pending: "Pending review",
+    reviewed: "Under review",
+    responded: "Responded",
+  };
+  return (
+    <span className={`rounded-full px-3 py-1 text-[10px] font-semibold ${styles[status]}`}>
+      {labels[status]}
+    </span>
+  );
+}
+
 export default function LandlordInquiries({
   initialInquiries,
 }: LandlordInquiriesProps) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleStatusUpdate = async (
     inquiryId: string,
     newStatus: InquiryStatus
   ) => {
     setUpdatingId(inquiryId);
+    setActionError(null);
     try {
-      const res = await updateInquiryStatusAction(inquiryId, newStatus);
-      if (res.success) {
-        setInquiries((prev) =>
-          prev.map((i) =>
-            i.id === inquiryId ? { ...i, status: newStatus } : i
-          )
-        );
+      const result = await updateInquiryStatusAction(inquiryId, newStatus);
+      if (!result.success) {
+        setActionError(result.error || "Could not update this inquiry.");
+        return;
       }
+      setInquiries((previous) =>
+        previous.map((inquiry) =>
+          inquiry.id === inquiryId
+            ? { ...inquiry, status: newStatus }
+            : inquiry
+        )
+      );
+    } catch {
+      setActionError("An unexpected error occurred while updating this inquiry.");
     } finally {
       setUpdatingId(null);
     }
   };
 
-  if (inquiries.length === 0) {
-    return (
-      <div className="text-center py-14 px-4 rounded-2xl border border-dashed border-[#EDE8DE] bg-[#F8F6F0] space-y-4">
-        <div className="w-14 h-14 rounded-full bg-white text-[#C6A56B] mx-auto flex items-center justify-center shadow-xs">
-          <MessageSquare className="w-7 h-7 text-[#C6A56B]" aria-hidden="true" />
-        </div>
-        <div className="space-y-1.5 max-w-sm mx-auto">
-          <h3 className="text-lg font-serif font-bold text-[#242622]">
-            No tenant inquiries received
-          </h3>
-          <p className="text-xs text-[#77766F] leading-relaxed">
-            When verified tenants inquire on your listed residences, their
-            direct contact details and messages will be organized here.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const getStatusBadge = (status: InquiryStatus) => {
-    switch (status) {
-      case "responded":
-        return <Badge variant="success" size="sm" className="rounded-full px-2.5">Responded</Badge>;
-      case "reviewed":
-        return <Badge variant="navy" size="sm" className="rounded-full px-2.5">Under Review</Badge>;
-      default:
-        return <Badge variant="gold" size="sm" className="rounded-full px-2.5">Pending Review</Badge>;
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-xs text-[#77766F] pb-2 border-b border-[#EDE8DE]">
-        <span>
-          Showing <strong className="text-[#242622]">{inquiries.length}</strong> incoming{" "}
-          {inquiries.length === 1 ? "inquiry" : "inquiries"}
-        </span>
-      </div>
+      {actionError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger"
+        >
+          {actionError}
+        </div>
+      )}
 
-      <div className="space-y-4">
-        {inquiries.map((inq) => (
-          <div
-            key={inq.id}
-            className="bg-white border border-[#EDE8DE] rounded-xl p-5 sm:p-6 space-y-4 shadow-xs hover:border-[#C6A56B] transition-colors"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EDE8DE] pb-3">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-[#C6A56B]">
-                  Prospective Tenant
-                </span>
-                <h3 className="text-base font-serif font-bold text-[#242622]">
-                  {inq.tenantName}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#77766F] mt-1">
-                  <a
-                    href={`mailto:${inq.tenantEmail}`}
-                    className="flex items-center gap-1 hover:text-[#123B32] transition-colors"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-                    <span>{inq.tenantEmail}</span>
-                  </a>
-                  <a
-                    href={`tel:${inq.tenantPhone}`}
-                    className="flex items-center gap-1 hover:text-[#123B32] transition-colors"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-                    <span>{inq.tenantPhone}</span>
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {getStatusBadge(inq.status)}
-              </div>
-            </div>
-
-            {/* Inquired Property Reference */}
-            <div className="flex items-center justify-between bg-[#F8F6F0] p-3 rounded-lg border border-[#EDE8DE] text-xs">
-              <div>
-                <span className="text-[10px] uppercase text-[#C6A56B] font-semibold">
-                  Property Inquired:
-                </span>{" "}
-                <strong className="text-[#242622] font-semibold">{inq.propertyTitle}</strong>{" "}
-                {inq.propertyPrice && (
-                  <span className="text-[#77766F] font-serif">
-                    ({formatPrice(inq.propertyPrice)})
-                  </span>
-                )}
-              </div>
-              <Link
-                href={`/properties/${inq.propertyId}`}
-                className="text-xs font-semibold text-[#123B32] hover:text-[#C6A56B] flex items-center gap-0.5 transition-colors"
-              >
-                <span>View</span>
-                <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
-              </Link>
-            </div>
-
-            {/* Message Body */}
-            <div className="text-xs text-[#242622] leading-relaxed bg-white border border-[#EDE8DE] p-3.5 rounded-lg">
-              <span className="text-[10px] font-bold uppercase text-[#C6A56B] block mb-1">
-                Message Content
-              </span>
-              {inq.message}
-            </div>
-
-            {/* Footer with Timestamp & Status Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs border-t border-[#EDE8DE]">
-              <div className="flex items-center gap-4 text-[11px] text-[#77766F]">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-                  Received {new Date(inq.createdAt).toLocaleDateString()}
-                </span>
-                {inq.moveInDate && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-[#C6A56B]" aria-hidden="true" />
-                    Target Move-in: {inq.moveInDate}
-                  </span>
-                )}
-              </div>
-
-              {/* Status Action Buttons */}
-              <div className="flex items-center gap-2">
-                {inq.status !== "reviewed" && inq.status !== "responded" && (
-                  <button
-                    type="button"
-                    onClick={() => handleStatusUpdate(inq.id, "reviewed")}
-                    disabled={updatingId === inq.id}
-                    className="px-3 py-1 text-xs rounded-full border border-[#EDE8DE] bg-[#F8F6F0] hover:bg-white hover:border-[#C6A56B] text-[#242622] font-medium cursor-pointer transition-colors"
-                  >
-                    Mark Reviewed
-                  </button>
-                )}
-
-                {inq.status !== "responded" && (
-                  <button
-                    type="button"
-                    onClick={() => handleStatusUpdate(inq.id, "responded")}
-                    disabled={updatingId === inq.id}
-                    className="px-3 py-1 text-xs rounded-full border border-[#174A3D]/30 bg-[#EAF3F0] hover:bg-[#d8ebe4] text-[#174A3D] font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
-                    <span>Mark Responded</span>
-                  </button>
-                )}
-              </div>
-            </div>
+      {inquiries.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-card px-5 py-14 text-center shadow-card sm:px-8">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent-text">
+            <MessageSquareText className="h-6 w-6" aria-hidden="true" />
           </div>
-        ))}
-      </div>
+          <h3 className="mt-5 font-serif text-2xl font-medium text-primary">
+            No tenant inquiries yet
+          </h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-secondary">
+            Messages sent about your residences will appear here with the tenant’s
+            contact details and requested move-in date.
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="border-b border-border pb-3 text-sm text-secondary">
+            <span className="font-semibold text-primary">{inquiries.length}</span>{" "}
+            {inquiries.length === 1 ? "inquiry" : "inquiries"} received
+          </p>
+          <div className="space-y-3">
+            {inquiries.map((inquiry) => {
+              const isUpdating = updatingId === inquiry.id;
+              return (
+                <article
+                  key={inquiry.id}
+                  className="rounded-2xl border border-card-border bg-card p-4 shadow-card sm:p-5"
+                >
+                  <header className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-accent-text">
+                        Prospective tenant
+                      </p>
+                      <h3 className="mt-1 font-serif text-xl font-medium text-primary">
+                        {inquiry.tenantName}
+                      </h3>
+                      <div className="mt-2 flex flex-col gap-2 text-xs text-secondary sm:flex-row sm:flex-wrap sm:gap-x-4">
+                        <a
+                          href={`mailto:${inquiry.tenantEmail}`}
+                          className="inline-flex min-h-8 items-center gap-1.5 break-all transition-colors hover:text-accent-text"
+                        >
+                          <Mail className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+                          {inquiry.tenantEmail}
+                        </a>
+                        <a
+                          href={`tel:${inquiry.tenantPhone}`}
+                          className="inline-flex min-h-8 items-center gap-1.5 transition-colors hover:text-accent-text"
+                        >
+                          <Phone className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
+                          {inquiry.tenantPhone}
+                        </a>
+                      </div>
+                    </div>
+                    <InquiryStatus status={inquiry.status} />
+                  </header>
+
+                  <div className="mt-4 rounded-xl border border-border bg-surface-muted p-3.5">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-secondary">
+                          Residence
+                        </p>
+                        <p className="mt-1 truncate text-sm font-medium text-primary">
+                          {inquiry.propertyTitle}
+                        </p>
+                        {inquiry.propertyPrice && (
+                          <p className="mt-0.5 text-xs text-secondary">
+                            {formatPrice(inquiry.propertyPrice)}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href={`/properties/${inquiry.propertyId}`}
+                        className="inline-flex min-h-9 w-fit items-center gap-1.5 text-xs font-semibold text-accent-text transition-colors hover:text-primary"
+                      >
+                        View listing
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-xl border border-border bg-surface p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-secondary">
+                      Tenant message
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-primary">
+                      {inquiry.message}
+                    </p>
+                  </div>
+
+                  <footer className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 text-xs text-secondary sm:flex-row sm:flex-wrap sm:gap-x-4">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock3 className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                        Received {new Date(inquiry.createdAt).toLocaleDateString()}
+                      </span>
+                      {inquiry.moveInDate && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <CalendarDays className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
+                          Move-in {inquiry.moveInDate}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {inquiry.status === "pending" && (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(inquiry.id, "reviewed")}
+                          disabled={isUpdating}
+                          className="inline-flex min-h-9 items-center justify-center rounded-full border border-border bg-surface px-3.5 text-xs font-semibold text-primary transition-colors hover:border-accent/60 hover:bg-surface-muted disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Mark reviewed"}
+                        </button>
+                      )}
+                      {inquiry.status !== "responded" && (
+                        <button
+                          type="button"
+                          onClick={() => handleStatusUpdate(inquiry.id, "responded")}
+                          disabled={isUpdating}
+                          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-button-primary px-3.5 text-xs font-semibold text-button-primary-text transition-colors hover:bg-button-primary-hover disabled:opacity-50"
+                        >
+                          <Check className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                          {isUpdating ? "Updating..." : "Mark responded"}
+                        </button>
+                      )}
+                    </div>
+                  </footer>
+                  {inquiry.status !== "responded" && (
+                    <p className="mt-3 text-[11px] leading-5 text-secondary">
+                      To reply, contact the tenant by email or phone above. Marking
+                      responded updates the inquiry status only.
+                    </p>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

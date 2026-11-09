@@ -68,20 +68,24 @@ KirayLink addresses this through `next/image`:
 
 KirayLink utilizes Tailwind CSS v4 with an inline `@theme` configuration:
 - **Zero Config Overhead**: Replaces legacy `tailwind.config.js` with pure CSS custom properties defined in `src/app/globals.css`.
-- **CSS Variables for Design Tokens**: Colors, borders, and shadows compile into standard CSS variables (`--color-navy`, `--color-gold`, `--color-ivory`).
+- **Reusable Design Tokens**: Semantic CSS variables cover backgrounds, surfaces, text, borders, buttons, inputs, focus rings, status colors, shadows, spacing, and radii. Legacy KirayLink color utilities resolve through these tokens so existing components can adopt theme changes without changing their behavior.
+- **Light and Dark Themes**: The `html[data-theme]` attribute selects a warm-ivory light palette or charcoal dark palette. A pre-hydration script restores the saved selection or follows the system preference; the appearance control persists explicit choices under `kiraylink-theme`.
+- **Typography**: Inter is the interface and body font; Playfair Display is available for editorial headings through the shared serif font token.
 - **Elimination of Runtime CSS-in-JS**: Styles are completely static and compiled ahead of time with zero JavaScript execution penalty.
 
 ---
 
 ## 5. Accessibility (a11y) & Semantic HTML
 
-KirayLink follows WCAG 2.1 Level AA accessibility standards:
+KirayLink uses accessible contrast and keyboard interaction patterns:
 
 1. **Color Contrast Compliance**:
-   - Deep Navy text (`#0F172A`) against Soft Ivory background (`#FAF8F5`) yields a contrast ratio of **15.2:1** (exceeding the 4.5:1 AA requirement).
-   - Warm Gold interactive accents (`#8C6E43`) on white background yield a contrast ratio of **4.8:1**.
+   - Primary text (`#24241F`) on warm ivory (`#F3F0E9`) has a contrast ratio of **13.7:1**.
+   - Small muted text is mapped to `#6B6A63` on light surfaces (4.77:1); the exact secondary brand token `#77766F` remains available for larger or less contrast-sensitive text.
+   - Muted gold (`#D19D56`) is reserved for fills and accents on light surfaces (2.13:1 against ivory); readable gold text uses `#855B25` in light mode and `#D19D56` in dark mode.
+   - Dark-theme ivory text (`#F3F0E9`) on charcoal cards (`#20211D`) has a contrast ratio of **14.2:1**.
 2. **Keyboard Navigation & Focus Indicators**:
-   - All interactive buttons and links feature visible focus rings (`focus-visible:outline-2 focus-visible:outline-[#C5A880]`).
+   - Interactive controls use visible theme-aware focus rings.
    - Modal dialogs support keyboard focus trapping and explicit `X` close controls.
 3. **Screen Reader Support**:
    - All decorative Lucide icons include `aria-hidden="true"`.

@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getAllActiveProperties } from "@/lib/properties-store";
+import { getAllActiveProperties, getSavedPropertyIds } from "@/lib/properties-store";
 import ListingsClient from "@/components/properties/ListingsClient";
+import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Available Residences | KirayLink",
@@ -10,8 +11,18 @@ export const metadata: Metadata = {
 };
 
 async function ListingsContent() {
-  const properties = await getAllActiveProperties();
-  return <ListingsClient initialProperties={properties} />;
+  const [properties, session] = await Promise.all([
+    getAllActiveProperties(),
+    getSession(),
+  ]);
+  const savedPropertyIds =
+    session?.role === "tenant" ? await getSavedPropertyIds(session.id) : [];
+  return (
+    <ListingsClient
+      initialProperties={properties}
+      savedPropertyIds={savedPropertyIds}
+    />
+  );
 }
 
 export default function ListingsPage() {
